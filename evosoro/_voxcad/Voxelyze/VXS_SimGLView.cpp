@@ -1,0 +1,843 @@
+/*******************************************************************************
+Copyright (c) 2010, Jonathan Hiller (Cornell University)
+If used in publication cite "J. Hiller and H. Lipson "Dynamic Simulation of Soft Heterogeneous Objects" In press. (2011)"
+
+This file is part of Voxelyze.
+Voxelyze is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+Voxelyze is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
+See <http://www.opensource.org/licenses/lgpl-3.0.html> for license details.
+*******************************************************************************/
+
+#include "VXS_SimGLView.h"
+#include "Utils/GL_Utils.h"
+
+CVXS_SimGLView::CVXS_SimGLView(CVX_Sim* pSimIn)
+{
+	pSim = pSimIn;
+
+	CurViewMode = RVM_VOXELS;
+	CurViewCol = RVC_TYPE;
+	CurViewVox = RVV_DEFORMED;
+
+	ViewForce = false;
+	ViewAngles = false;
+	PlotSourcesRays = false;
+	NeedStatsUpdate=true;
+
+}
+
+CVXS_SimGLView::~CVXS_SimGLView(void)
+{
+}
+
+CVXS_SimGLView& CVXS_SimGLView::operator=(const CVXS_SimGLView& rGlView) //overload "=" 
+{
+	pSim = rGlView.pSim;
+	NeedStatsUpdate = rGlView.NeedStatsUpdate;
+	ViewForce = rGlView.ViewForce;
+	ViewAngles = rGlView.ViewAngles;
+	CurViewMode = rGlView.CurViewMode;
+	CurViewCol = rGlView.CurViewCol;
+	CurViewVox = rGlView.CurViewVox;
+
+	return *this;
+}
+
+void CVXS_SimGLView::Draw(int Selected, bool ViewSection, int SectionLayer)
+{
+	if (!pSim->IsInitalized()) return;
+
+	if (CurViewMode == RVM_NONE) return;
+	else if (CurViewMode == RVM_VOXELS){ 
+		switch (CurViewVox){
+		case RVV_DISCRETE: DrawGeometry(Selected, ViewSection, SectionLayer); break; //section view only currently enabled in voxel view mode
+		case RVV_DEFORMED: DrawVoxMesh(Selected); break;
+		case RVV_SMOOTH: DrawSurfMesh(); break;
+		}
+	}
+	else { //CurViewMode == RVT_BONDS
+		vfloat VoxScale=0.2;
+		if (ViewForce){
+			DrawForce();
+			DrawGeometry(Selected, ViewSection, SectionLayer, VoxScale);
+
+		}
+		else {
+			if (CurViewVox == RVV_SMOOTH) VoxScale=0.1;
+			DrawBonds();
+			DrawGeometry(Selected, ViewSection, SectionLayer, VoxScale);
+		}
+		DrawStaticFric();
+	}
+	if (ViewAngles)	DrawAngles();
+	if (pSim->IsFeatureEnabled(VXSFEAT_FLOOR)) DrawFloor(); //draw the floor if its in use
+//	if (pEnv->IsFloorEnabled()) DrawFloor(); //draw the floor if its in use
+
+	if(pSim->pEnv->getSourcesPresent())
+		DrawEnvironmentalSources();
+
+	//DrawPointingVector();
+
+	NeedStatsUpdate=true;
+}
+
+void CVXS_SimGLView::DrawPointingVector()
+{	
+
+	// OK
+	
+	// Tip pointing vector: drawn from the tip voxel
+	//CGL_Utils::DrawLineArrowD(pSim->VoxArray[pSim->getTipVoxel()].GetCurPos(), pSim->VoxArray[pSim->getTipVoxel()].GetCurPos()+(pSim->getPointingVector()), 1.0, CColor(0, 0, 0));  
+
+	Vec3D<double> orig(0.0,0.0,0.0);
+
+	//CGL_Utils::DrawLineArrowD(pSim->getBaseVector(), pSim->getBaseVector()+((pSim->getPointingVector().Normalized())*pSim->LocalVXC.GetLatticeDim()*15), 1.0, CColor(0, 0, 0));  
+	//CGL_Utils::DrawLineArrowD(pSim->getBaseVector(), (pSim->getTargetVector().Normalized()*pSim->LocalVXC.GetLatticeDim()*15), 1.0, CColor(0.0, 0, 1.0));  
+	Vec3D<double> tipPosition = pSim->getTipPosition();
+	CGL_Utils::DrawLineArrowD(tipPosition, tipPosition+((pSim->getPointingVector().Normalized())*pSim->LocalVXC.GetLatticeDim()*15), 1.0, CColor(0, 0, 0));  
+	CGL_Utils::DrawLineArrowD(tipPosition, tipPosition+((pSim->getTargetVector().Normalized())*pSim->LocalVXC.GetLatticeDim()*15), 1.0, CColor(1.0, 0, 0.0));  	
+
+}
+
+void CVXS_SimGLView::DrawEnvironmentalSources()
+{
+	// ...
+
+	std::vector<VX_Source*> environmentalSources = pSim->pEnv->GetEnvironmentalSources();
+
+	for(int kk = 0; kk < environmentalSources.size(); kk++)
+	{			
+
+		 Vec3D<double> position = environmentalSources[kk]->getSourcePosition();
+
+		 Vec3D<double> Center(position.x, position.y, position.z);
+		 Vec3D<double> Squeeze(1,1,1);
+
+
+		switch(environmentalSources[kk]->getSourceType())
+		{
+			case HEAT:
+			glColor3f(1.0, 0.0, 0.0); 
+				break;
+			case LIGHT:
+			glColor3f(1.0, 1.0, 0.0);			
+				break;
+			default:
+			glColor3f(0.0, 1.0, 0.0);
+				break;
+		}
+
+		float SourceSize = pSim->LocalVXC.GetLatticeDim()*3;
+		CGL_Utils::DrawCube(Center, SourceSize, Squeeze, true, true, 1.0);
+
+		if(PlotSourcesRays)
+		{
+			Vec3D<double> closestVoxPos = pSim->VoxArray[environmentalSources[kk]->getIndexOfClosestVoxel()].GetCurPos();
+			// Draw a line from the center of the workspace to the source
+			glLineWidth(1.5); 
+			glColor3f(0.0, 0.0, 0.0);
+			glBegin(GL_LINES);
+			//glVertex3f(pSim->LocalVXC.Structure.GetVXDim()*pSim->LocalVXC.GetLatticeDim()/2, pSim->LocalVXC.Structure.GetVYDim()*pSim->LocalVXC.GetLatticeDim()/2, pSim->LocalVXC.Structure.GetVZDim()*pSim->LocalVXC.GetLatticeDim()/2);
+			glVertex3f(closestVoxPos.x, closestVoxPos.y, closestVoxPos.z);
+			glVertex3f(position.x, position.y, position.z);
+			glEnd();
+		}
+		/*
+		// changing in transformation matrix.
+		// scaling transfomation 
+		glScalef(1.0,1.0,1.0);
+		// built-in (glut library) function , draw you a sphere.
+		float radius = 1;
+		glutSolidSphere(radius,20,20);
+		// Flush buffers to screen		 
+		glFlush();  
+		 // ------------------------------------		 
+*/
+	}
+}
+
+void CVXS_SimGLView::DrawForce(void)
+{
+	CVXS_Voxel* pVox;
+
+	float PrevLineWidth;
+	glGetFloatv(GL_LINE_WIDTH, &PrevLineWidth);
+	glLineWidth(1.0);
+	glDisable(GL_LIGHTING);
+
+	vfloat MaxForce = 0;
+	int iT = pSim->NumBond();
+	int NumVox = pSim->NumVox();
+	if (NumVox <=0) return;
+	vfloat VSize = pSim->VoxArray[0].GetNominalSize();
+
+	for (int i = 0; i<iT; i++){ //go through all the bonds...
+		vfloat ThisMag = pSim->BondArrayInternal[i].GetForce1().Length();
+		if (ThisMag > MaxForce) MaxForce = ThisMag;
+	}
+
+	vfloat ForceScale = 0.3*VSize/MaxForce; //Vox size / max Force
+
+//	int x, y, z;
+	glBegin(GL_LINES);
+	glLoadName (-1); //to disable picking
+	for (int i = 0; i<NumVox; i++) //go through all the voxels...
+	{
+		//pSim->pEnv->pObj->GetXYZNom(&x, &y, &z, pSim->StoXIndexMap[i]);
+		//if (ViewSection && z>SectionLayer) continue; //exit if obscured in a section view!
+
+		pVox = &pSim->VoxArray[i];
+
+		Vec3D<> Center = pVox->GetCurPos();
+		CQuat<> Angle = pVox->GetCurAngle();
+		Vec3D<> PointToDrawFrom;
+		for (int i=0; i<6; i++) //for each potential bond
+		{
+			switch (i){
+			case BD_PX: PointToDrawFrom = Center + Angle.RotateVec3D(Vec3D<>(0.2*VSize, 0, 0)); break;
+			case BD_NX: PointToDrawFrom = Center + Angle.RotateVec3D(Vec3D<>(-0.2*VSize, 0, 0)); break;
+			case BD_PY: PointToDrawFrom = Center + Angle.RotateVec3D(Vec3D<>(0, 0.2*VSize, 0)); break;
+			case BD_NY: PointToDrawFrom = Center + Angle.RotateVec3D(Vec3D<>(0, -0.2*VSize, 0)); break;
+			case BD_PZ: PointToDrawFrom = Center + Angle.RotateVec3D(Vec3D<>(0, 0, 0.2*VSize)); break;
+			case BD_NZ: PointToDrawFrom = Center + Angle.RotateVec3D(Vec3D<>(0, 0, -0.2*VSize)); break;
+			};
+
+			CVXS_BondInternal* pBond = pVox->GetpInternalBond((BondDir)i);
+			if (pBond){
+				glColor4d(1.0, 0.0, 0.0, 1.0); //red
+				Vec3D<> PointToDrawTo;
+	
+				//Total Force
+				if (pVox->IAmInternalVox2(i)) PointToDrawTo = PointToDrawFrom+ForceScale*pBond->GetForce2();
+				else PointToDrawTo = PointToDrawFrom+ForceScale*pBond->GetForce1();
+				CGL_Utils::DrawLineArrowD(PointToDrawFrom, PointToDrawTo, 1.0, CColor(1, 0, 0)); //Red
+
+				//Axial Force
+				if (pVox->IAmInternalVox2(i)) PointToDrawTo = PointToDrawFrom+ForceScale*pBond->AxialForce2;
+				else PointToDrawTo = PointToDrawFrom+ForceScale*pBond->AxialForce1;
+				CGL_Utils::DrawLineArrowD(PointToDrawFrom, PointToDrawTo, 1.0, CColor(0.2, 0.2, 0.7)); //Blue
+
+				//Bending Force
+				if (pVox->IAmInternalVox2(i)) PointToDrawTo = PointToDrawFrom+ForceScale*pBond->BendingForce2;
+				else PointToDrawTo = PointToDrawFrom+ForceScale*pBond->BendingForce1;
+				CGL_Utils::DrawLineArrowD(PointToDrawFrom, PointToDrawTo, 1.0, CColor(0.2, 0.7, 0.2)); //Green
+
+				//Shear Force
+				if (pVox->IAmInternalVox2(i)) PointToDrawTo = PointToDrawFrom+ForceScale*pBond->ShearForce2;
+				else PointToDrawTo = PointToDrawFrom+ForceScale*pBond->ShearForce1;
+				CGL_Utils::DrawLineArrowD(PointToDrawFrom, PointToDrawTo, 1.0, CColor(0.7, 0.2, 0.7)); //Purple
+
+			}
+		}
+	}
+	glEnd();
+
+
+	glLineWidth(PrevLineWidth);
+	glEnable(GL_LIGHTING);
+
+}
+
+void CVXS_SimGLView::DrawFloor(void)
+{
+
+	//TODO: build an openGL list 
+	vfloat Size = pSim->LocalVXC.GetLatticeDim()*4;
+	vfloat sX = 1.5*Size;
+	vfloat sY = .866*Size;
+
+	glEnable(GL_LIGHTING);
+
+	glLoadName (-1); //never want to pick floor
+
+	vfloat floorHeight = 0.00001;
+
+	glNormal3d(0.0, 0.0, 1.0);
+	for (int i=-20; i <=30; i++){
+		for (int j=-40; j <=60; j++){
+			
+			// glColor4d(0.6, 0.7+0.2*((int)(1000*sin((float)(i+110)*(j+106)*(j+302)))%10)/10.0, 0.6, 1.0);
+			glColor4d(1.0, 1.0, 1.0, 1.0);
+
+			glBegin(GL_TRIANGLE_FAN);
+			glVertex3d(i*sX, j*sY, floorHeight);
+			glVertex3d(i*sX+0.5*Size, j*sY, floorHeight);
+			glVertex3d(i*sX+0.25*Size, j*sY+0.433*Size, floorHeight);
+			glVertex3d(i*sX-0.25*Size, j*sY+0.433*Size, floorHeight);
+			glVertex3d(i*sX-0.5*Size, j*sY, floorHeight);
+			glVertex3d(i*sX-0.25*Size, j*sY-0.433*Size, floorHeight);
+			glVertex3d(i*sX+0.25*Size, j*sY-0.433*Size, floorHeight);
+			glVertex3d(i*sX+0.5*Size, j*sY, floorHeight);
+			glEnd();
+
+			// glColor4d(0.6, 0.7+0.2*((int)(1000*sin((float)(i+100)*(j+103)*(j+369)))%10)/10.0, 0.6, 1.0);
+			glColor4d(1.0, 1.0, 1.0, 1.0);
+
+			glBegin(GL_TRIANGLE_FAN);
+			glVertex3d(i*sX+.75*Size, j*sY+0.433*Size, floorHeight);
+			glVertex3d(i*sX+1.25*Size, j*sY+0.433*Size, floorHeight);
+			glVertex3d(i*sX+Size, j*sY+0.866*Size, floorHeight);
+			glVertex3d(i*sX+0.5*Size, j*sY+0.866*Size, floorHeight);
+			glVertex3d(i*sX+0.25*Size, j*sY+0.433*Size, floorHeight);
+			glVertex3d(i*sX+0.5*Size, j*sY, floorHeight);
+			glVertex3d(i*sX+Size, j*sY, floorHeight);
+			glVertex3d(i*sX+1.25*Size, j*sY+0.433*Size, floorHeight);
+			glEnd();
+		}
+	}
+}
+
+void CVXS_SimGLView::DrawGeometry(int Selected, bool ViewSection, int SectionLayer, vfloat ScaleVox)
+{
+	Vec3D<> Center;
+	Vec3D<> tmp(0,0,0);
+
+	int iT = pSim->NumVox();
+	int x, y, z;
+	CColor ThisColor;
+	for (int i = 0; i<iT; i++) //go through all the voxels...
+	{
+		pSim->pEnv->pObj->GetXYZNom(&x, &y, &z, pSim->StoXIndexMap[i]);
+		if (ViewSection && z>SectionLayer) continue; //exit if obscured in a section view!
+
+
+		Center = pSim->VoxArray[i].GetCurPos();
+
+		ThisColor = GetCurVoxColor(i, Selected);
+		glColor4d(ThisColor.r, ThisColor.g, ThisColor.b, ThisColor.a);
+		
+		// nac: debug: color surface voxels black
+		// if (pSim->VoxArray[i].IsSurfaceVoxel())
+		// {
+		// 	glColor4d(0.0, 0.0, 0.0, 1.0);
+		// }
+		
+		Vec3D<> CenterOff = ScaleVox*(pSim->VoxArray[i].GetCornerPos() + pSim->VoxArray[i].GetCornerNeg())/2;
+
+
+		glPushMatrix();
+		glTranslated(Center.x + CenterOff.x, Center.y + CenterOff.y, Center.z + CenterOff.z);
+
+		glLoadName (pSim->StoXIndexMap[i]); //to enable picking
+
+		//generate rotation matrix here!!! (from quaternion)
+		Vec3D<> Axis;
+		vfloat AngleAmt;
+		CQuat<>(pSim->VoxArray[i].GetCurAngle()).AngleAxis(AngleAmt, Axis);
+		glRotated(AngleAmt*180/3.1415926, Axis.x, Axis.y, Axis.z);
+	
+		Vec3D<> CurrentSizeDisplay = pSim->VoxArray[i].GetSizeCurrent();
+		glScaled(CurrentSizeDisplay.x, CurrentSizeDisplay.y, CurrentSizeDisplay.z); 
+
+		pSim->LocalVXC.Voxel.DrawVoxel(&Center, ScaleVox); //draw unit size since we scaled just now
+		
+		glPopMatrix();
+	}
+	
+
+	// //------------------------------------------------------------------------------------------------
+	// // nac: draw shadow:
+	// for (int i = 0; i<iT; i++) //go through all the voxels...
+	// {
+	// 	pSim->pEnv->pObj->GetXYZNom(&x, &y, &z, pSim->StoXIndexMap[i]);
+	// 	if (ViewSection && z>SectionLayer) continue; //exit if obscured in a section view!
+
+
+	// 	Center = pSim->VoxArray[i].GetCurPos();
+
+	// 	ThisColor = GetCurVoxColor(i, Selected);
+	// 	glColor4d(ThisColor.r, ThisColor.g, ThisColor.b, ThisColor.a);
+		
+	// 	// nac: debug: color surface voxels black
+	// 	// if (pSim->VoxArray[i].IsSurfaceVoxel())
+	// 	// {
+	// 	// 	glColor4d(0.0, 0.0, 0.0, 1.0);
+	// 	// }
+		
+	// 	Vec3D<> CenterOff = ScaleVox*(pSim->VoxArray[i].GetCornerPos() + pSim->VoxArray[i].GetCornerNeg())/2;
+
+
+	// 	glPushMatrix();
+	// 	// glTranslated(Center.x + CenterOff.x, Center.y + CenterOff.y, Center.z + CenterOff.z);
+	// 	glTranslated(Center.x + CenterOff.x, Center.y + CenterOff.y, 0);
+
+	// 	glLoadName (pSim->StoXIndexMap[i]); //to enable picking
+
+	// 	//generate rotation matrix here!!! (from quaternion)
+	// 	Vec3D<> Axis;
+	// 	vfloat AngleAmt;
+	// 	CQuat<>(pSim->VoxArray[i].GetCurAngle()).AngleAxis(AngleAmt, Axis);
+	// 	glRotated(AngleAmt*180/3.1415926, Axis.x, Axis.y, Axis.z);
+	
+	// 	Vec3D<> CurrentSizeDisplay = pSim->VoxArray[i].GetSizeCurrent();
+	// 	glScaled(CurrentSizeDisplay.x, CurrentSizeDisplay.y, CurrentSizeDisplay.z); 
+
+	// 	pSim->LocalVXC.Voxel.DrawVoxel(&Center, ScaleVox); //draw unit size since we scaled just now
+		
+	// 	glPopMatrix();
+	// }
+	// //------------------------------------------------------------------------------------------------
+
+}
+
+CColor CVXS_SimGLView::GetCurVoxColor(int SIndex, int Selected)
+{
+
+	// DEBUG LOCAL POINTING VECTORS:	
+//	CGL_Utils::DrawLineArrowD(pSim->VoxArray[SIndex].GetCurPos(), pSim->VoxArray[SIndex].GetCurPos()+((pSim->VoxArray[SIndex].getVoxPointingVector().Normalized())*pSim->LocalVXC.GetLatticeDim()*0.4), 1.0, CColor(0, 0, 0));  	
+//	CGL_Utils::DrawLineArrowD(pSim->VoxArray[SIndex].GetCurPos(), pSim->VoxArray[SIndex].GetCurPos()+((pSim->VoxArray[SIndex].getDesiredPointingVector().Normalized())*pSim->LocalVXC.GetLatticeDim()*0.4), 1.0, CColor(1.0, 0, 0));  	
+
+	// If the voxel is the tip voxel, the one to be tracked, color it in green
+/*	if(pSim->StoXIndexMap[SIndex] == pSim->getTipVoxel())// || pSim->StoXIndexMap[SIndex] == pSim->getBaseVoxel())
+	{
+		//std::cout << "Coloring tip voxel no. "<< SIndex << " green" <<std::endl;
+		return CColor(0.0f, 0.7f, 0.0f, 1.0f);
+	}
+*/
+	if (pSim->StoXIndexMap[SIndex] == Selected) return CColor(1.0f, 0.0f, 1.0f, 1.0f); //highlight selected voxel (takes precedence...)
+
+	switch (CurViewCol) {
+		case RVC_TYPE:
+
+            if (pSim->pEnv->pObj->GetUsingInitialVoxelSize() || pSim->pEnv->pObj->GetUsingFinalVoxelSize())  // color difference from nominal
+            {
+                double maxSize = (1 + pSim->pEnv->getGrowthAmplitude())*pSim->VoxArray[SIndex].GetNominalSize();
+				double minSize = (1 - pSim->pEnv->getGrowthAmplitude())*pSim->VoxArray[SIndex].GetNominalSize();
+
+				double finalSize = pSim->VoxArray[SIndex].finalVoxelSize;
+				if (finalSize < minSize) finalSize = minSize;
+
+				double initialSize = pSim->VoxArray[SIndex].initialVoxelSize;
+				if (initialSize < minSize) initialSize = minSize;
+
+				double normSize = (finalSize - initialSize) / (maxSize - minSize);
+				return GetJet(normSize + 0.5);
+
+            }
+
+
+			else if(pSim->pEnv->pObj->GetEvolvingStiffness() || pSim->pEnv->pObj->GetUsingStiffnessPlasticity())
+			{
+				double maxE = pSim->GetMaxElasticMod();
+				double minE = pSim->GetMinElasticMod();
+				double normE = (pSim->VoxArray[SIndex].GetEMod() - minE ) / (maxE - minE);
+
+				return CColor(0.0f, normE, 0.0f, 1.0f); // 1.3f-normE
+			}
+			else
+			{ // TYPE
+				float R, G, B, A;
+	//			LocalVXC.GetLeafMat(VoxArray[SIndex].GetVxcIndex())->GetColorf(&R, &G, &B, &A);
+				pSim->VoxArray[SIndex].GetpMaterial()->GetColorf(&R, &G, &B, &A);
+				return CColor(R, G, B, A);
+				
+			}
+			break;
+		case RVC_KINETIC_EN:
+			if (pSim->SS.MaxVoxKinE == 0) return GetJet(0);
+			return GetJet(pSim->VoxArray[SIndex].GetCurKineticE() / pSim->SS.MaxVoxKinE);
+			break;
+		case RVC_DISP:
+			if (pSim->SS.MaxVoxDisp == 0) return GetJet(0);
+			return GetJet(pSim->VoxArray[SIndex].GetCurAbsDisp() / pSim->SS.MaxVoxDisp);
+			break;
+
+		case RVC_GROWTH_RATE:
+			if(pSim->pEnv->pObj->GetUsingFinalVoxelSize())
+			{
+			    vfloat change = pSim->VoxArray[SIndex].finalVoxelSize - pSim->VoxArray[SIndex].initialVoxelSize;
+				if(change > 0) return CColor(change+0.7, 0.0f, 0.0f, 1.0f); // Offset is to make colors brighter!
+				if(change < 0) return CColor(0.0f, 0.0f, +0.7, 1.0f); // Offset is to make colors brighter!
+				return CColor(0.0f, 0.0f, 0.0f, 1.0f);
+			}
+			return CColor(0.0f,1.0f,0.0f, 1.0f);
+			// if (pSim->VoxArray[SIndex].GetBroken()) return CColor(1.0f, 0.0f, 0.0f, 1.0f);
+			// else if (pSim->VoxArray[SIndex].GetYielded()) return CColor(1.0f, 1.0f, 0.0f, 1.0f);
+			// else return CColor(1.0f, 1.0f, 1.0f, 1.0f);
+			// nac: island fitness function:
+			// if (pSim->VoxArray[SIndex].inRing) { return CColor(0.5,0.0,1.0,1.0); }
+			// else {return CColor(0.9, 1.0, 0.8, 1.0);}
+			// if (pSim->VoxArray[SIndex].GetCurPos().z <= pSim->LocalVXC.GetLatticeDim()*.75) { return CColor(0.5,0.0,1.0,1.0); }
+			// else {return CColor(0.9, 1.0, 0.8, 1.0);}
+			// return CColor(pSim->VoxArray[SIndex].Scale, pSim->VoxArray[SIndex].Scale, pSim->VoxArray[SIndex].Scale, 1.0);
+/*			if (pSim->VoxArray[SIndex].GetMaterialIndex() == 3 and pSim->CurTime > pSim->GetInitCmTime())
+			{
+				return CColor(0.5-(0.5*sin(2*3.1415926f * (pSim->CurTime/pSim->VoxArray[SIndex].TempPeriod + pSim->VoxArray[SIndex].phaseOffset))),0.5+(0.5*sin(2*3.1415926f * (pSim->CurTime/pSim->VoxArray[SIndex].TempPeriod + pSim->VoxArray[SIndex].phaseOffset))),0.0+(0.0*sin(2*3.1415926f * (pSim->CurTime/pSim->VoxArray[SIndex].TempPeriod + pSim->VoxArray[SIndex].phaseOffset))), 1.0);//
+			}
+			else
+			{
+				float R, G, B, A;	
+				pSim->VoxArray[SIndex].GetpMaterial()->GetColorf(&R, &G, &B, &A);
+				return CColor(R, G, B, A);
+			}
+*/
+			break;
+
+		case RVC_STIMULUS:
+			
+			if(pSim->VoxArray[SIndex].getCurrentStimulus() > 0)
+				return CColor(pSim->VoxArray[SIndex].getCurrentStimulus(),0.0f,0.0f, 1.0f);
+			return CColor(0.0f,0.0f,-pSim->VoxArray[SIndex].getCurrentStimulus(),1.0f);
+
+			break;				
+
+		case RVC_STIFF_PLAST_RATE:
+			if(pSim->pEnv->pObj->GetUsingStiffnessPlasticity())
+			{
+				if(pSim->VoxArray[SIndex].stiffnessPlasticityRate > 0) return CColor(pSim->VoxArray[SIndex].stiffnessPlasticityRate+0.7, 0.0f, 0.0f, 1.0f); // Offset is to make colors brighter
+				if(pSim->VoxArray[SIndex].stiffnessPlasticityRate < 0) return CColor(0.0f, 0.0f, -pSim->VoxArray[SIndex].stiffnessPlasticityRate+0.7, 1.0f); // Offset is to make colors brighter
+				return CColor(0.0f, 0.0f, 0.0f, 1.0f);
+			}
+			return CColor(1.0f,1.0f,1.0f, 1.0f);
+			break;			
+		case RVC_STRAIN_EN:
+			if (pSim->SS.MaxBondStrainE == 0) return GetJet(0);
+			return GetJet(pSim->VoxArray[SIndex].GetMaxBondStrainE() / pSim->SS.MaxBondStrainE);
+			break;
+		case RVC_STRAIN:
+			if (pSim->SS.MaxBondStrain == 0) return GetJet(0);
+			return GetJet(pSim->VoxArray[SIndex].GetMaxBondStrain() / pSim->SS.MaxBondStrain);
+			break;
+		case RVC_STRESS:
+			if (pSim->SS.MaxBondStress == 0) return GetJet(0);
+			return GetJet(pSim->VoxArray[SIndex].GetMaxBondStress() / pSim->SS.MaxBondStress);
+			break;
+		case RVC_PRESSURE:{
+			vfloat MaxP = pSim->SS.MaxPressure, MinP = pSim->SS.MinPressure;
+			if (MaxP <= MinP) return GetJet(0);
+
+			vfloat Mag = MaxP;
+			if (-MinP>Mag) Mag = -MinP;
+			//vfloat ThisP = pSim->VoxArray[SIndex].GetPressure();
+			return GetJet(0.5-pSim->VoxArray[SIndex].GetPressure()/(2*Mag));
+			break;
+						  }
+		default:
+			return CColor(1.0f,1.0f,1.0f, 1.0f);
+			break;
+	}
+}
+
+CColor CVXS_SimGLView::GetInternalBondColor(CVXS_BondInternal* pBond)
+{
+	switch (CurViewCol) {
+		case RVC_TYPE:
+			if (pBond->IsSmallAngle()) return CColor(0.3, 0.7, 0.3, 1.0);
+			else return CColor(0.0, 0.0, 0.0, 1.0);
+			break;
+		case RVC_KINETIC_EN:
+			if (pSim->SS.MaxVoxKinE == 0) return GetJet(0);
+			return GetJet(pBond->GetMaxVoxKinE() / pSim->SS.MaxVoxKinE);
+			break;
+		case RVC_DISP:
+			if (pSim->SS.MaxVoxDisp == 0) return GetJet(0);
+			return GetJet(pBond->GetMaxVoxDisp() / pSim->SS.MaxVoxDisp);
+			break;
+		case RVC_STRAIN_EN:
+			if (pSim->SS.MaxBondStrainE == 0) return GetJet(0);
+			return GetJet(pBond->GetStrainEnergy() / pSim->SS.MaxBondStrainE);
+			break;
+		case RVC_STRAIN:
+			if (pSim->SS.MaxBondStrain == 0) return GetJet(0);
+			return GetJet(pBond->GetEngStrain() / pSim->SS.MaxBondStrain);
+			break;
+		case RVC_STRESS:
+			if (pSim->SS.MaxBondStress == 0) return GetJet(0);
+			return GetJet(pBond->GetEngStress() / pSim->SS.MaxBondStress);
+			break;
+		case RVC_PRESSURE:
+			return GetJet(0); //for now. Pressure of a bond doesn't really make sense
+			break;
+		default:
+			return CColor(0.0f,0.0f,0.0f,1.0f);
+			break;
+	}
+}
+
+CColor CVXS_SimGLView::GetCollisionBondColor(CVXS_BondCollision* pBond)
+{
+	if (!pSim->IsFeatureEnabled(VXSFEAT_COLLISIONS)) return CColor(0.0, 0.0, 0.0, 0.0); //Hide me
+	vfloat Force = pBond->GetForce1().Length(); //check which force to use!
+	if (Force == 0.0) return CColor(0.3, 0.3,1.0, 1.0);
+	else return CColor(1.0, 0.0, 0.0, 1.0);
+}
+
+
+void CVXS_SimGLView::DrawSurfMesh(int Selected)
+{
+	//if simulation has a mesh, draw it...
+
+	//otherwise
+	SmoothMesh.UpdateMesh(Selected); //updates the generated mesh
+	SmoothMesh.Draw();
+
+}
+
+void CVXS_SimGLView::DrawVoxMesh(int Selected)
+{
+	VoxMesh.UpdateMesh(Selected); //updates the generated mesh
+	VoxMesh.Draw();
+}
+
+
+void CVXS_SimGLView::DrawBonds(void)
+{
+//	bool DrawInputBond = true;
+
+	Vec3D<> P1, P2, Axis;
+	CVXS_Voxel* pV1, *pV2;
+	vfloat AngleAmt;
+	int NumSegs = 12; //number segments for smooth bonds
+
+
+	float PrevLineWidth;
+	glGetFloatv(GL_LINE_WIDTH, &PrevLineWidth);
+	glLineWidth(3.0);
+	glDisable(GL_LIGHTING);
+
+	int iT = pSim->NumBond();
+
+	for (int i = 0; i<iT; i++) //go through all the bonds...
+	{
+		CVXS_BondInternal* pBond = &pSim->BondArrayInternal[i];
+		pV1 = pBond->GetpV1(); pV2 = pBond->GetpV2();
+
+		//set color
+		CColor ThisColor = GetInternalBondColor(pBond);
+		glColor4f(ThisColor.r, ThisColor.g, ThisColor.b, ThisColor.a);
+
+		P1 = pV1->GetCurPos();
+		P2 = pV2->GetCurPos();
+
+		if (CurViewVox == RVV_SMOOTH){
+			CQuat<>A1 = pV1->GetCurAngle();
+			CQuat<>A2 = pV2->GetCurAngle();
+			A1.AngleAxis(AngleAmt, Axis); //get angle/axis for A1
+
+			Vec3D<> Pos2L = A1.RotateVec3DInv(P2-P1); //Get PosDif in local coordinate system
+			CQuat<> Angle2L = A2*A1.Conjugate(); //rotate A2 by A1
+			pBond->ToXDirBond(&Pos2L); //swing bonds in the +Y and +Z directions to +X
+			pBond->ToXDirBond(&Angle2L);
+
+			vfloat L = Pos2L.x; //pV1->GetNominalSize();
+			Vec3D<> Angle2LV = Angle2L.ToRotationVector();
+			vfloat ay = (Angle2LV.z*L-2*Pos2L.y)/(L*L*L);
+			vfloat by = (3*Pos2L.y-Angle2LV.z*L)/(L*L);
+			vfloat az = (-Angle2LV.y*L-2*Pos2L.z)/(L*L*L);
+			vfloat bz = (3*Pos2L.z+Angle2LV.y*L)/(L*L);
+
+			glPushMatrix();
+			glTranslated(P1.x, P1.y, P1.z);
+			glRotated(AngleAmt*180/3.1415926, Axis.x, Axis.y, Axis.z); //rotate to voxel 1's coordinate system
+			glBegin(GL_LINE_STRIP);
+			glLoadName (-1); //to disable picking
+
+			for (int i=0; i<=NumSegs; i++){
+				vfloat iL = ((float)i)/NumSegs*L;
+				Vec3D<> ThisPoint = Vec3D<>(iL, ay*iL*iL*iL + by*iL*iL, az*iL*iL*iL + bz*iL*iL);
+				pBond->ToOrigDirBond(&ThisPoint);
+				glVertex3d(ThisPoint.x, ThisPoint.y, ThisPoint.z);
+			}
+
+			glEnd();
+			glPopMatrix();
+		}
+		else { //straight lines (faster)
+			glBegin(GL_LINES);
+			glLoadName (-1); //to disable picking
+
+			if (ThisColor.a != 0.0) {glVertex3f((float)P1.x, (float)P1.y, (float)P1.z); glVertex3f((float)P2.x, (float)P2.y, (float)P2.z);}
+
+			glEnd();
+
+		}
+	}
+
+	iT = pSim->NumColBond();
+	glBegin(GL_LINES);
+	glLoadName (-1); //to disable picking
+	for (int i = 0; i<iT; i++) //go through all the bonds...
+	{
+		pV1 = pSim->BondArrayCollision[i].GetpV1(); pV2 = pSim->BondArrayCollision[i].GetpV2();
+
+		CColor ThisColor = GetCollisionBondColor(&pSim->BondArrayCollision[i]);
+		P1 = pV1->GetCurPos();
+		P2 = pV2->GetCurPos();
+
+		glColor4f(ThisColor.r, ThisColor.g, ThisColor.b, ThisColor.a);
+			if (ThisColor.a != 0.0) {glVertex3f((float)P1.x, (float)P1.y, (float)P1.z); glVertex3f((float)P2.x, (float)P2.y, (float)P2.z);}
+	}
+
+
+	////input bond
+	//if (DrawInputBond && BondInput->GetpV1() && BondInput->GetpV2()){
+	//	glColor4f(1.0, 0, 0, 1.0);
+	//	P1 = BondInput->GetpV1()->GetCurPos();
+	//	P2 = BondInput->GetpV2()->GetCurPos();
+	//	glVertex3f((float)P1.x, (float)P1.y, (float)P1.z); glVertex3f((float)P2.x, (float)P2.y, (float)P2.z);
+	//}
+
+	glEnd();
+
+	glLineWidth(PrevLineWidth);
+	glEnable(GL_LIGHTING);
+
+
+}
+//
+//void CVXS_SimGLView::DrawMiniVoxels() //draws grab-able mini voxels with space to show bonds or forces
+//{
+//	Vec3D<> Center;
+//	iT = pSim->NumVox();
+//	glPointSize(5.0);
+//	Vec3D<> tmp(0,0,0);
+//	for (int i = 0; i<iT; i++) //go through all the voxels...
+//	{
+//		//mostly copied from Voxel drawing function!
+//		Center = pSim->VoxArray[i].GetCurPos();
+//		glColor4d(0.2, 0.2, 0.2, 1.0);
+//	//	glLoadName (StoXIndexMap[i]); //to enable picking
+//
+//		glPushMatrix();
+//		glTranslated(Center.x, Center.y, Center.z);
+//		glLoadName (pSim->StoXIndexMap[i]); //to enable picking
+//
+//		//generate rotation matrix here!!! (from quaternion)
+//		Vec3D<> Axis;
+//		vfloat AngleAmt;
+//		CQuat<>(pSim->VoxArray[i].GetCurAngle()).AngleAxis(AngleAmt, Axis);
+//		glRotated(AngleAmt*180/3.1415926, Axis.x, Axis.y, Axis.z);
+//	
+//		vfloat Scale = pSim->VoxArray[i].GetCurScale(); //show deformed voxel size
+//		glScaled(Scale, Scale, Scale);
+//
+//		//LocalVXC.Voxel.DrawVoxel(&tmp, LocalVXC.Lattice.Lattice_Dim*(1+0.5*CurTemp * pMaterials[CVoxelArray[i].MatIndex].CTE), LocalVXC.Lattice.Z_Dim_Adj);
+//		pSim->LocalVXC.Voxel.DrawVoxel(&tmp, 0.2); //LocalVXC.GetLatticeDim()); //[i].CurSize.x); //, LocalVXC.Lattice.Z_Dim_Adj);
+//		
+//		glPopMatrix();
+//	}
+//
+//
+//	glLineWidth(PrevLineWidth);
+//	glEnable(GL_LIGHTING);
+//}
+
+void CVXS_SimGLView::DrawAngles(void)
+{
+	//draw directions
+	float PrevLineWidth;
+	glGetFloatv(GL_LINE_WIDTH, &PrevLineWidth);
+	glLineWidth(2.0);
+	glDisable(GL_LIGHTING);
+
+	glBegin(GL_LINES);
+
+	for (int i = 0; i < pSim->NumVox(); i++){ //go through all the voxels... (GOOD FOR ONLY SMALL DISPLACEMENTS, I THINK... think through transformations here!)
+		glColor3f(1,0,0); //+X direction
+		glVertex3d(pSim->VoxArray[i].GetCurPos().x, pSim->VoxArray[i].GetCurPos().y, pSim->VoxArray[i].GetCurPos().z);
+		Vec3D<> Axis1(pSim->LocalVXC.GetLatticeDim()/4,0,0);
+		Vec3D<> RotAxis1 = (pSim->VoxArray[i].GetCurAngle()*CQuat<>(Axis1)*pSim->VoxArray[i].GetCurAngle().Conjugate()).ToVec();
+		glVertex3d(pSim->VoxArray[i].GetCurPos().x + RotAxis1.x, pSim->VoxArray[i].GetCurPos().y + RotAxis1.y, pSim->VoxArray[i].GetCurPos().z + RotAxis1.z);
+
+		glColor3f(0,1,0); //+Y direction
+		glVertex3d(pSim->VoxArray[i].GetCurPos().x, pSim->VoxArray[i].GetCurPos().y, pSim->VoxArray[i].GetCurPos().z);
+		Axis1 = Vec3D<>(0, pSim->LocalVXC.GetLatticeDim()/4,0);
+		RotAxis1 = (pSim->VoxArray[i].GetCurAngle()*CQuat<>(Axis1)*pSim->VoxArray[i].GetCurAngle().Conjugate()).ToVec();
+		glVertex3d(pSim->VoxArray[i].GetCurPos().x + RotAxis1.x, pSim->VoxArray[i].GetCurPos().y + RotAxis1.y, pSim->VoxArray[i].GetCurPos().z + RotAxis1.z);
+
+		glColor3f(0,0,1); //+Z direction
+		glVertex3d(pSim->VoxArray[i].GetCurPos().x, pSim->VoxArray[i].GetCurPos().y, pSim->VoxArray[i].GetCurPos().z);
+		Axis1 = Vec3D<>(0,0, pSim->LocalVXC.GetLatticeDim()/4);
+		RotAxis1 = (pSim->VoxArray[i].GetCurAngle()*CQuat<>(Axis1)*pSim->VoxArray[i].GetCurAngle().Conjugate()).ToVec();
+		glVertex3d(pSim->VoxArray[i].GetCurPos().x + RotAxis1.x, pSim->VoxArray[i].GetCurPos().y + RotAxis1.y, pSim->VoxArray[i].GetCurPos().z + RotAxis1.z);
+
+	}
+	glEnd();
+
+	glLineWidth(PrevLineWidth);
+	glEnable(GL_LIGHTING);
+}
+
+void CVXS_SimGLView::DrawStaticFric(void)
+{
+	//draw triangle for points that are stuck via static friction
+	glBegin(GL_TRIANGLES);
+	glColor4f(255, 255, 0, 1.0);
+	vfloat dist = pSim->VoxArray[0].GetNominalSize()/3; //needs work!!
+	int iT = pSim->NumVox();
+	Vec3D<> P1;
+	for (int i = 0; i<iT; i++){ //go through all the voxels...
+		if (pSim->VoxArray[i].GetCurStaticFric()){ //draw point if static friction...
+			P1 = pSim->VoxArray[i].GetCurPos();
+			glVertex3f((float)P1.x, (float)P1.y, (float)P1.z); 
+			glVertex3f((float)P1.x, (float)(P1.y - dist/2), (float)(P1.z + dist));
+			glVertex3f((float)P1.x, (float)(P1.y + dist/2), (float)(P1.z + dist));
+		}
+	}
+	glEnd();
+}
+
+int CVXS_SimGLView::StatRqdToDraw() //returns the stats bitfield that we need to calculate to draw the current view.
+{
+	if (CurViewMode == RVM_NONE) return CALCSTAT_NONE;
+	switch (CurViewCol){
+	case RVC_KINETIC_EN: return CALCSTAT_KINE; break;
+	case RVC_DISP: return CALCSTAT_DISP; break;
+	case RVC_STRAIN_EN: return CALCSTAT_STRAINE; break;
+	case RVC_STRAIN: return CALCSTAT_ENGSTRAIN; break;
+	case RVC_STRESS: return CALCSTAT_ENGSTRESS; break;
+	case RVC_PRESSURE: return CALCSTAT_PRESSURE; break;
+	default: return CALCSTAT_NONE;
+	}
+}
+//
+//void CVXS_SimGLView::DrawOverlay(void)
+//{
+//	if (CurViewCol == RVC_KINETIC_EN || CurViewCol == RVC_DISP || CurViewCol == RVC_STRAIN_EN || CurViewCol == RVC_STRAIN || CurViewCol == RVC_STRESS){
+//		CColor Tmp;
+//		int XOff = 10;
+//		int YOff = 10;
+//		int XWidth = 30;
+//		int YHeight = 200;
+//		int NumChunks = 4;
+//		int TextXOff = 10;
+//
+//		glBegin(GL_QUAD_STRIP);
+//		
+//		for (int i=0; i<=NumChunks; i++){
+//			double Perc = ((double)i)/NumChunks;
+//			Tmp = GetJet(1.0-Perc);
+//			glColor4f(Tmp.r, Tmp.g, Tmp.b, Tmp.a);
+//
+//			glVertex2f(XOff,YOff+Perc*YHeight);
+//			glVertex2f(XOff+XWidth,YOff+Perc*YHeight);
+//
+//		}
+//		glEnd();
+//
+//		//draw the labels...
+//		double MaxVal = 1.0;
+//		QString Units = "";
+//		switch(CurViewCol){
+//			case RVC_KINETIC_EN: MaxVal = pSim->SS.MaxVoxKinE*1000; Units = "mJ"; break;
+//			case RVC_DISP: MaxVal = pSim->SS.MaxVoxDisp*1000; Units = "mm"; break;
+//			case RVC_STRAIN_EN: MaxVal = pSim->SS.MaxBondStrainE*1000; Units = "mJ"; break;
+//			case RVC_STRAIN: MaxVal = pSim->SS.MaxBondStrain; break;
+//			case RVC_STRESS: MaxVal = pSim->SS.MaxBondStress/1000000; Units = "MPa"; break;
+//		}
+//
+//		glColor4f(0, 0, 0, 1.0);
+//		QString ScaleNumber;
+//
+//		for (int i=0; i<=NumChunks; i++){
+//			double Perc = ((double)i)/NumChunks;
+//			ScaleNumber = QString::number((1-Perc) * MaxVal, 'g', 3) + Units;
+//			pGLWin->renderText(XOff + XWidth + TextXOff, YOff + Perc*YHeight+5, ScaleNumber);
+//		}
+//
+//
+//		
+//	}
+//
+//
+//}
