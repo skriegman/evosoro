@@ -1,6 +1,12 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+from xml.etree.cElementTree import parse
+
+
+def get_output_values(filename, output_name):
+    data = parse(filename).getroot().find('VXC').find('Structure').find(output_name)
+    return [float(string) for layer in data for string in layer.text.split(', ') if string != ""]
 
 
 def get_all_data(paths_to_files):

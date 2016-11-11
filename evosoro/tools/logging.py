@@ -53,14 +53,12 @@ def make_header(population, path):
     #     objective = population.objective_dict[rank]
     #     header_string += "\t\t" + objective["name"] + "\t\t" + "parent_" + objective["name"]
 
-    header_string = "gen\t\tid\t\tdom"
+    header_string = "gen\t\tid\t\tdom\t\tparent_id\t\tvariation_type"
 
     # columns for objectives
     for rank in range(len(population.objective_dict)):
         objective = population.objective_dict[rank]
-        header_string += "\t\t{:15}".format(objective["name"]) + "\t\t{:15}".format("parent_"+objective["name"])
-    header_string += "\t\tparent_id"
-    header_string += "\t\tvariation_type"
+        header_string += "\t\t{}".format(objective["name"]) + "\t\t{}".format("parent_"+objective["name"])
 
     # columns for network outputs
     ind = population[0]
@@ -129,12 +127,13 @@ def record_individuals_data(pop, path, num_inds_to_save=None, print_to_terminal=
         # recording_file.write(str(pop.gen) + "\t\t" + str(ind.id) + "\t\t" + str(ind.age) + "\t\t" +
         #                      ind.variation_type + objectives_string + "\n")
 
-        recording_file.write("{:5d}\t\t".format(int(pop.gen)) +
-                             "{:5d}\t\t".format(int(ind.id)) +
-                             "{:5d}\t\t".format(int(len(ind.dominated_by))) +
-                             objectives_string_print +
-                             "{:5d}\t\t".format(int(ind.parent_id)) +
-                             ind.variation_type + "\n")
+        recording_file.write("{}\t\t".format(int(pop.gen)) +
+                             "{}\t\t".format(int(ind.id)) +
+                             "{}\t\t".format(int(len(ind.dominated_by))) +
+                             "{}\t\t".format(int(ind.parent_id)) +
+                             ind.variation_type + "\t\t" +
+                             objectives_string + "\n")
+
         if print_to_terminal:
             print("{:5d}\t".format(int(pop.gen)) +
                   "{:5d}\t".format(int(ind.id)) +
