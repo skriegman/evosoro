@@ -3,11 +3,10 @@ import time
 import sys
 import networkx as nx
 import subprocess as sub
+import numpy as np
 
 # TODO: double tabs to csv?
 # TODO: save networks and pareto front functions are non operational
-# TODO: add pareto level to logs
-# TODO: print (at least a few) info regarding the current population to stdout
 
 
 def time_stamp():
@@ -68,8 +67,11 @@ def make_header(population, path):
     for name, details in ind.genotype.to_phenotype_mapping.items():
         # details = ind.genotype.to_phenotype_mapping[name]
         if details["logging_stats"] is not None:
+            header_string += "\t\t" + name + "_different_from_parent"
             for stat in details["logging_stats"]:
                 header_string += "\t\t" + stat.__name__ + "_" + name
+                header_string += "\t\t" + stat.__name__ + "_parent_" + name
+                header_string += "\t\t" + stat.__name__ + "_parent_diff_" + name
 
     _file.write(header_string + "\n")
     _file.close()
@@ -101,6 +103,13 @@ def record_individuals_data(pop, path, num_inds_to_save=None, print_to_terminal=
     n = 0
     while n < num_inds_to_save and n < len(pop):
         ind = pop[n]
+
+        # find parent
+        parent = ind  # for gen 0
+        for other_ind in pop:
+            if other_ind.id == ind.parent_id:
+                parent = other_ind
+
         objectives_string = ""
         objectives_string_print = ""
 
@@ -119,10 +128,17 @@ def record_individuals_data(pop, path, num_inds_to_save=None, print_to_terminal=
         #     details = ind.genotype.to_phenotype_mapping[name]
         for name, details in ind.genotype.to_phenotype_mapping.items():
             if details["logging_stats"] is not None:
-                for network in ind.genotype:
+                for network, parent_network in zip(ind.genotype, parent.genotype):
                     if name in network.output_node_names:
+                        state = network.graph.node[name]["state"]
+                        parent_state = parent_network.graph.node[name]["state"]
+                        diff = state - parent_state
+                        any_changes = np.any(state != parent_state)
+                        objectives_string += "{}\t\t".format(any_changes)
                         for stat in details["logging_stats"]:
-                            objectives_string += "{}\t\t".format(stat(network.graph.node[name]["state"]))
+                            objectives_string += "{}\t\t".format(stat(state))
+                            objectives_string += "{}\t\t".format(stat(parent_state))
+                            objectives_string += "{}\t\t".format(stat(diff))
 
         # recording_file.write(str(pop.gen) + "\t\t" + str(ind.id) + "\t\t" + str(ind.age) + "\t\t" +
         #                      ind.variation_type + objectives_string + "\n")
