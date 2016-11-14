@@ -104,12 +104,6 @@ def record_individuals_data(pop, path, num_inds_to_save=None, print_to_terminal=
     while n < num_inds_to_save and n < len(pop):
         ind = pop[n]
 
-        # find parent
-        parent = ind  # for gen 0
-        for other_ind in pop:
-            if other_ind.id == ind.parent_id:
-                parent = other_ind
-
         objectives_string = ""
         objectives_string_print = ""
 
@@ -128,7 +122,7 @@ def record_individuals_data(pop, path, num_inds_to_save=None, print_to_terminal=
         #     details = ind.genotype.to_phenotype_mapping[name]
         for name, details in ind.genotype.to_phenotype_mapping.items():
             if details["logging_stats"] is not None:
-                for network, parent_network in zip(ind.genotype, parent.genotype):
+                for network, parent_network in zip(ind.genotype, ind.parent.genotype):
                     if name in network.output_node_names:
                         state = network.graph.node[name]["state"]
                         parent_state = parent_network.graph.node[name]["state"]
