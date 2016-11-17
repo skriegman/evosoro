@@ -37,12 +37,14 @@ SAVE_LINEAGES = False
 MAX_TIME = 0.5  # (hours) how long to wait before autosuspending
 EXTRA_GENS = 0  # extra gens to run when continuing from checkpoint
 
-RUN_DIR = "tests_data"  # Subdirectory where results are going to be generated
+RUN_DIR = "basic_data"  # Subdirectory where results are going to be generated
+RUN_NAME = "Basic"
 CHECKPOINT_EVERY = 1  # How often to save an snapshot of the execution state to later resume the algorithm
 SAVE_POPULATION_EVERY = 1  # How often (every x generations) we save a snapshot of the evolving population
 
 SEED = 1
 random.seed(SEED)  # Initializing the random number generator for reproducibility
+np.random.seed(SEED)
 
 
 # Defining a custom genotype, inheriting from base class Genotype
@@ -134,18 +136,24 @@ my_optimization = ParetoOptimization(my_sim, my_env, my_pop)
 # And, finally, our main
 if __name__ == "__main__":
 
-    my_optimization.run(max_gens=MAX_GENS, save_vxa_every=SAVE_POPULATION_EVERY, checkpoint_every=CHECKPOINT_EVERY,
-                        num_random_individuals=NUM_RANDOM_INDS, time_to_try_again=TIME_TO_TRY_AGAIN,
-                        max_eval_time=MAX_EVAL_TIME)
+    my_optimization.run(max_hours_runtime=MAX_TIME, max_gens=MAX_GENS, num_random_individuals=NUM_RANDOM_INDS,
+                        directory=RUN_DIR, name=RUN_NAME, max_eval_time=MAX_EVAL_TIME,
+                        time_to_try_again=TIME_TO_TRY_AGAIN, checkpoint_every=CHECKPOINT_EVERY,
+                        save_vxa_every=SAVE_POPULATION_EVERY, save_lineages=SAVE_LINEAGES)
 
     # Here is how to use the checkpointing mechanism
     # if not os.path.isfile("./" + RUN_DIR + "/checkpoint.pickle"):
     #     # start optimization
-    #     my_optimization.run(max_gens=MAX_GENS, save_vxa_every=SAVE_POPULATION_EVERY, checkpoint_every=CHECKPOINT_EVERY,
-    #                         num_random_individuals=NUM_RANDOM_INDS, time_to_try_again=TIME_TO_TRY_AGAIN,
-    #                         max_eval_time=MAX_EVAL_TIME)
+    #     my_optimization.run(max_hours_runtime=MAX_TIME, max_gens=MAX_GENS, num_random_individuals=NUM_RANDOM_INDS,
+    #                         directory=RUN_DIR, name=RUN_NAME, max_eval_time=MAX_EVAL_TIME,
+    #                         time_to_try_again=TIME_TO_TRY_AGAIN, checkpoint_every=CHECKPOINT_EVERY,
+    #                         save_vxa_every=SAVE_POPULATION_EVERY, save_lineages=SAVE_LINEAGES)
     #
     # else:
-    #     continue_from_checkpoint(directory=RUN_DIR, max_eval_time=MAX_EVAL_TIME, time_to_try_again=TIME_TO_TRY_AGAIN,
-    #                              checkpoint_every=CHECKPOINT_EVERY, additional_gens=EXTRA_GENS,
-    #                              save_lineages=SAVE_LINEAGES, num_random_individuals=NUM_RANDOM_INDS)
+    #     continue_from_checkpoint(directory=RUN_DIR, additional_gens=EXTRA_GENS, max_hours_runtime=MAX_TIME,
+    #                              max_eval_time=MAX_EVAL_TIME, time_to_try_again=TIME_TO_TRY_AGAIN,
+    #                              checkpoint_every=CHECKPOINT_EVERY, save_vxa_every=SAVE_POPULATION_EVERY,
+    #                              save_lineages=SAVE_LINEAGES)
+
+
+

@@ -22,16 +22,23 @@ sub.call("cp ../_voxcad/voxelyzeMain/voxelyze .", shell=True)
 
 NUM_RANDOM_INDS = 1
 MAX_GENS = 1000
-POPSIZE = 10
+POPSIZE = 15
 IND_SIZE = (5, 5, 4)
 SIM_TIME = 10
 INIT_TIME = 0.5
 DT_FRAC = 0.5
-GROWTH_AMPLITUDE = 0.6
-MIN_TEMP_FACT = 0.2
+GROWTH_AMPLITUDE = 0.5
+MIN_TEMP_FACT = 0.4
 SAVE_VXA_EVERY = 10
 TIME_TO_TRY_AGAIN = 10
 MAX_EVAL_TIME = 60
+MAX_TIME = 0.5
+SAVE_LINEAGES = False
+CHECKPOINT_EVERY = 1
+EXTRA_GENS = 0
+RUN_DIR = "growth_data"
+RUN_NAME = "Growth"
+
 
 SEED = 1
 random.seed(SEED)
@@ -43,19 +50,20 @@ class MyGenotype(Genotype):
         Genotype.__init__(self, orig_size_xyz=IND_SIZE)
         self.add_network(CPPN(output_node_names=["initial_size"]))
         self.to_phenotype_mapping.add_map(name="initial_size", tag="<InitialVoxelSize>",
-                                          logging_stats=[mean_abs, std_abs, count_negative, count_positive])
-
-        self.add_network(CPPN(output_node_names=["start_growth_time"]))
-        self.to_phenotype_mapping.add_map(name="start_growth_time", tag="<StartGrowthTime>", func=positive_sigmoid,
-                                          logging_stats=[mean_abs, std_abs])
-
-        self.add_network(CPPN(output_node_names=["growth_time"]))
-        self.to_phenotype_mapping.add_map(name="growth_time", tag="<GrowthTime>", func=positive_sigmoid,
-                                          logging_stats=[mean_abs, std_abs])
+                                          logging_stats=[np.median, np.mean, np.std, count_negative, count_positive])
 
         self.add_network(CPPN(output_node_names=["final_size"]))
         self.to_phenotype_mapping.add_map(name="final_size", tag="<FinalVoxelSize>",
-                                          logging_stats=[mean_abs, std_abs, count_negative, count_positive])
+                                          logging_stats=[np.median, np.mean, np.std, count_negative, count_positive])
+
+        self.add_network(CPPN(output_node_names=["start_growth_time"]))
+        self.to_phenotype_mapping.add_map(name="start_growth_time", tag="<StartGrowthTime>", func=positive_sigmoid,
+                                          logging_stats=[np.median, np.mean, mean_abs, np.std, std_abs])
+
+        self.add_network(CPPN(output_node_names=["growth_time"]))
+        self.to_phenotype_mapping.add_map(name="growth_time", tag="<GrowthTime>", func=positive_sigmoid,
+                                          logging_stats=[np.median, np.mean, mean_abs, np.std, std_abs])
+
 
 # set simulation
 my_sim = Sim(dt_frac=DT_FRAC, simulation_time=SIM_TIME, min_temp_fact=MIN_TEMP_FACT, fitness_eval_init_time=INIT_TIME)
@@ -76,5 +84,7 @@ my_pop = Population(my_objective_dict, MyGenotype, Phenotype, pop_size=POPSIZE)
 my_optimization = ParetoOptimization(my_sim, my_env, my_pop)
 
 if __name__ == "__main__":
-    my_optimization.run(max_gens=MAX_GENS, save_vxa_every=SAVE_VXA_EVERY, num_random_individuals=NUM_RANDOM_INDS,
-                        time_to_try_again=TIME_TO_TRY_AGAIN, max_eval_time=MAX_EVAL_TIME)
+    my_optimization.run(max_hours_runtime=MAX_TIME, max_gens=MAX_GENS, num_random_individuals=NUM_RANDOM_INDS,
+                        directory=RUN_DIR, name=RUN_NAME, max_eval_time=MAX_EVAL_TIME,
+                        time_to_try_again=TIME_TO_TRY_AGAIN, checkpoint_every=CHECKPOINT_EVERY,
+                        save_vxa_every=SAVE_VXA_EVERY, save_lineages=SAVE_LINEAGES)

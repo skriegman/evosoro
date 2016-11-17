@@ -162,7 +162,7 @@ def record_individuals_data(pop, path, num_inds_to_save=None, print_to_terminal=
 def initialize_folders(population, run_directory, run_name, save_networks, save_all_individual_data=True,
                        save_lineages=True):
 
-    sub.call("mkdir " + run_directory + "/" + run_name + "/" + " 2>/dev/null", shell=True)
+    # sub.call("mkdir " + run_directory + "/" + run_name + "/" + " 2>/dev/null", shell=True)
     ret = sub.call("mkdir " + run_directory + "/" + " 2>/dev/null", shell=True)
     if ret != 0:
         response = raw_input("****************************************************\n"
@@ -247,9 +247,8 @@ def write_pareto_front(population, run_directory, run_name):
     """Save the vxa of all individuals with min dominance number (top list)."""
     sub.call("mkdir " + run_directory + "/bestSoFar/paretoFronts/Gen_%04i" % population.gen, shell=True)
     ind = population[0]  # first individual
-    best_dominance = len(ind.dominated_by)
     for individual in population:
-        if len(individual.dominated_by) == best_dominance:
+        if len(individual.dominated_by) == 0:
             sub.call("mv " + run_directory + "/voxelyzeFiles/" + run_name + "--id_%05i.vxa" % individual.id +
                      " " + run_directory + "/bestSoFar/paretoFronts/Gen_%04i/" % population.gen + "/" +
                      run_name + "Gen_%04i--Fit_%.08f--id_%05i--dom_%d.vxa" %

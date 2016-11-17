@@ -1,5 +1,6 @@
 import random
 import time
+import os
 import cPickle
 import numpy as np
 import subprocess as sub
@@ -29,11 +30,22 @@ class Optimizer(object):
             return s / 3600.0
 
     def save_checkpoint(self, directory):
+        if os.path.isfile("./" + directory + "/checkpoint.pickle"):
+            # copy previous checkpoint in case something happens during i/o
+            sub.call("cp " + directory + "/checkpoint.pickle " + directory + "/previous_checkpoint.pickle", shell=True)
+
         random_state = random.getstate()
         numpy_random_state = np.random.get_state()
         data = [self, random_state, numpy_random_state]
-        with open(directory + '/checkpoint.pickle', 'wb') as handle:
-            cPickle.dump(data, handle, protocol=cPickle.HIGHEST_PROTOCOL)
+
+        try:
+            with open(directory + '/checkpoint.pickle', 'wb') as handle:
+                cPickle.dump(data, handle, protocol=cPickle.HIGHEST_PROTOCOL)
+
+        except EOFError:
+            # try one more time
+            with open(directory + '/checkpoint.pickle', 'wb') as handle:
+                cPickle.dump(data, handle, protocol=cPickle.HIGHEST_PROTOCOL)
 
     def run(self, *args, **kwargs):
         raise NotImplementedError
@@ -59,10 +71,7 @@ class PopulationBasedOptimizer(Optimizer):
             sub.call("rm %s/AUTOSUSPENDED" % directory, shell=True)
 
         self.autosuspended = False
-        self.max_gens = max_gens
-        self.directory = directory
-        self.name = name
-        self.num_random_inds = num_random_individuals
+        self.max_gens = max_gens  # can add additional gens through checkpointing
 
         print_log = PrintLog()
         print_log.add_timer("evaluation")
@@ -71,13 +80,17 @@ class PopulationBasedOptimizer(Optimizer):
         # sub.call("clear", shell=True)
 
         if not continued_from_checkpoint:  # generation zero
-            initialize_folders(self.pop, directory, name, save_nets, save_lineages=save_lineages)
-            make_gen_directories(self.pop, directory, save_vxa_every, save_nets)
-            sub.call("touch {}/RUNNING".format(directory), shell=True)
-            self.evaluate(self.sim, self.env, self.pop, print_log, save_vxa_every, directory, name, max_eval_time,
-                          time_to_try_again, save_lineages)
+            self.directory = directory
+            self.name = name
+            self.num_random_inds = num_random_individuals
+
+            initialize_folders(self.pop, self.directory, self.name, save_nets, save_lineages=save_lineages)
+            make_gen_directories(self.pop, self.directory, save_vxa_every, save_nets)
+            sub.call("touch {}/RUNNING".format(self.directory), shell=True)
+            self.evaluate(self.sim, self.env, self.pop, print_log, save_vxa_every, self.directory, self.name,
+                          max_eval_time, time_to_try_again, save_lineages)
             self.select(self.pop)  # only produces dominated_by stats, no selection happening (population not replaced)
-            write_gen_stats(self.pop, directory, name, save_vxa_every, save_pareto, save_nets)
+            write_gen_stats(self.pop, self.directory, self.name, save_vxa_every, save_pareto, save_nets)
 
         while self.pop.gen < max_gens:
 
@@ -89,12 +102,12 @@ class PopulationBasedOptimizer(Optimizer):
                 self.autosuspended = True
                 print_log.message("Autosuspending at generation {0}".format(self.pop.gen + 1), timer_name="start")
                 self.save_checkpoint(self.directory)
-                sub.call("touch {0}/AUTOSUSPENDED && rm {0}/RUNNING".format(directory), shell=True)
+                sub.call("touch {0}/AUTOSUSPENDED && rm {0}/RUNNING".format(self.directory), shell=True)
                 break
 
             self.pop.gen += 1
             print_log.message("Creating folders structure for this generation")
-            make_gen_directories(self.pop, directory, save_vxa_every, save_nets)
+            make_gen_directories(self.pop, self.directory, save_vxa_every, save_nets)
 
             # update ages
             self.pop.update_ages()
@@ -115,8 +128,8 @@ class PopulationBasedOptimizer(Optimizer):
             # evaluate fitness
             print_log.message("Starting fitness evaluation", timer_name="start")
             print_log.reset_timer("evaluation")
-            self.evaluate(self.sim, self.env, self.pop, print_log, save_vxa_every, directory, name, max_eval_time,
-                          time_to_try_again, save_lineages)
+            self.evaluate(self.sim, self.env, self.pop, print_log, save_vxa_every, self.directory, self.name,
+                          max_eval_time, time_to_try_again, save_lineages)
             print_log.message("Fitness evaluation finished", timer_name="evaluation")  # record total eval time in log
 
             # perform selection by pareto fronts
@@ -124,7 +137,7 @@ class PopulationBasedOptimizer(Optimizer):
 
             # print population to stdout and save all individual data
             print_log.message("Saving statistics")
-            write_gen_stats(self.pop, directory, name, save_vxa_every, save_pareto, save_nets)
+            write_gen_stats(self.pop, self.directory, self.name, save_vxa_every, save_pareto, save_nets)
 
             # replace population with selection
             self.pop.individuals = new_population
@@ -133,7 +146,7 @@ class PopulationBasedOptimizer(Optimizer):
         if not self.autosuspended:  # print end of run stats
             print_log.message("Finished {0} generations".format(self.pop.gen + 1))
             print_log.message("DONE!", timer_name="start")
-            sub.call("touch {0}/RUN_FINISHED && rm {0}/RUNNING".format(directory), shell=True)
+            sub.call("touch {0}/RUN_FINISHED && rm {0}/RUNNING".format(self.directory), shell=True)
 
 
 class ParetoOptimization(PopulationBasedOptimizer):
