@@ -122,7 +122,7 @@ def record_individuals_data(pop, path, num_inds_to_save=None, print_to_terminal=
         #     details = ind.genotype.to_phenotype_mapping[name]
         for name, details in ind.genotype.to_phenotype_mapping.items():
             if details["logging_stats"] is not None:
-                for network, parent_network in zip(ind.genotype, ind.parent.genotype):
+                for network, parent_network in zip(ind.genotype, ind.parent_genotype):
                     if name in network.output_node_names:
                         state = network.graph.node[name]["state"]
                         parent_state = parent_network.graph.node[name]["state"]

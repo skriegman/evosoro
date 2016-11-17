@@ -296,7 +296,7 @@ class SoftBot(object):
         self.pareto_level = 0
         self.selected = 0  # survived selection
         self.variation_type = "newly_generated"  # (from parent)
-        self.parent = self  # default for randomly generated ind
+        self.parent_genotype = self.genotype  # default for randomly generated ind
         self.parent_id = -1
         self.age = 0
 

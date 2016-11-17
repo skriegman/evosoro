@@ -38,14 +38,8 @@ class Optimizer(object):
         numpy_random_state = np.random.get_state()
         data = [self, random_state, numpy_random_state]
 
-        try:
-            with open(directory + '/checkpoint.pickle', 'wb') as handle:
-                cPickle.dump(data, handle, protocol=cPickle.HIGHEST_PROTOCOL)
-
-        except EOFError:
-            # try one more time
-            with open(directory + '/checkpoint.pickle', 'wb') as handle:
-                cPickle.dump(data, handle, protocol=cPickle.HIGHEST_PROTOCOL)
+        with open(directory + '/checkpoint.pickle', 'wb') as handle:
+            cPickle.dump(data, handle, protocol=cPickle.HIGHEST_PROTOCOL)
 
     def run(self, *args, **kwargs):
         raise NotImplementedError

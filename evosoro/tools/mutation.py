@@ -58,8 +58,8 @@ def create_new_children_through_mutation(pop, print_log, new_children=None, allo
             for rank, goal in pop.objective_dict.items():
                 setattr(clone, "parent_{}".format(goal["name"]), getattr(clone, goal["name"]))
 
-            clone.parent = ind
-            clone.parent_id = clone.id  # TODO: is this necessary? it's only used in printing to terminal
+            clone.parent_genotype = ind.genotype
+            clone.parent_id = clone.id
             clone.id = pop.max_id
             pop.max_id += 1
 
