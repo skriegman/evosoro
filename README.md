@@ -28,27 +28,40 @@ evosoro: soft robot simulator
 
 </div>
 
-Evosoro is a Python soft robot simulation library based on Voxelyze. It provides a high-level interface for dynamic simulation of soft multimaterial robots.
+<br> 
 
+<b>Evosoro</b> is a Python soft robot simulation library based on the Voxelyze physics engine. It provides a high-level interface for the dynamic simulation and automated evolutionary design of soft multimaterial robots.
 
-
-
-
+The library was designed and developed by <a href="https://skriegman.github.io/" target="_blank">Sam Kriegman</a>, <a href="http://sssa.bioroboticsinstitute.it/user/1507" target="_blank">Francesco Corucci</a> and <a href="http://www.ncheney.com/" target="_blank">Nick Cheney</a> at the <a href="http://www.meclab.org" target="_blank">Morphology, Evolution & Cognition Laboratory</a>, <a href="http://www.uvm.edu/~cmplxsys/" target="_blank">Vermont Complex Systems Center</a>, University of Vermont (USA).
 
 Citing
 ------
 
-If using this code for academic purposes please cite the following two papers:
+If using this code for academic purposes please cite some of the following papers, selecting the most relevant publication to your purposes:
+
+Generic VoxCad/Voxelyze reference:
 
 Hiller, J., & Lipson, H. (2014). 
 *Dynamic simulation of soft multimaterial 3d-printed objects.*
 Soft Robotics, 1(1), 88-101.
 
+Evolution of soft robots using generative encodings (CPPN):
 
 Cheney, N., MacCurdy, R., Clune, J., & Lipson, H. (2013). 
 *Unshackling evolution: evolving soft robots with multiple materials and a powerful generative encoding.* 
 In Proceedings of the 15th annual conference on Genetic and evolutionary computation (pp. 167-174). ACM.
 
+Evolution of growing soft robots:
+
+Corucci, F., Cheney, N., Lipson, H., Laschi, C., & Bongard, J. (2016).
+*Material properties affect evolution’s ability to exploit morphological computation in growing soft-bodied creatures.*
+In Proceedings of The Fifteenth International Conference on the Synthesis and Simulation of Living Systems, ALIFE XV (pp. 234-241).
+
+Evolution of swimming soft robots:
+
+Corucci, F., Cheney, N., Lipson, H., Laschi, C., & Bongard, J. (2016).
+*Evolving swimming soft-bodied creatures.*
+In Late Breaking Proceedings of The Fifteenth International Conference on the Synthesis and Simulation of Living Systems, ALIFE XV (p. 6).
 
 <!--
 Dependencies
@@ -84,7 +97,7 @@ Installation
 
 <!--    pip install git+git://github.com/skriegman/evosoro.git#egg=evosoro-->
 
-It is recommended that you install [anaconda](https://docs.continuum.io/anaconda/install#) as your Python distribution. Anaconda is a free package manager and Python distribution that includes all of the dependies required for evosoro. However if you instead choose to manually install Python,
+It is recommended that you install [anaconda](https://docs.continuum.io/anaconda/install#) as your Python distribution. Anaconda is a free package manager and Python distribution that includes all of the dependencies required for evosoro. However if you instead choose to manually install Python,
 
     sudo apt-get install python-dev python-pip
     sudo pip install numpy networkx scipy decorator pandas
@@ -100,18 +113,19 @@ Install git if you have not already done so.
 
 Navigate to your working directory (e.g. your home).
 
-    cd /home
+    cd ~
 
 Clone the repo.
 
     git clone https://github.com/skriegman/evosoro.git
 
-Navigate to the _voxcad directory and compile.
+There are different well documented examples (evosoro/examples) and custom versions of VoxCad/Voxelyze (evosoro/_voxcad folders) included in this repository. Let's try running an example in which soft robots are optimized to locomote in a terrestrial environment, using an evolutionary algorithm and a basic version of the physics engine (the procedure is the same for all the examples). 
+Navigate to the _voxcad directory and compile as follows:
 
     cd evosoro/evosoro/_voxcad/
     make
 
-Install voxelyze lib:
+Install the voxelyze library:
 
     cd Voxelyze
     make
@@ -123,6 +137,8 @@ Navigate back out to the examples folder and run basic.py
     
     cd ../../examples
     python basic.py
+
+You should start seeing some output being produced in your console, and a new directory being created (evosoro/evosoro/basic_data), which contains the results of the simulation.
     
 <!--
 ------------------------------------
@@ -148,15 +164,17 @@ If you are having difficulty building scipy try
 Examples
 --------
 
-After running basic.py for some time, you can start having a look at some of the evolved morphologies and behaviors by opening up some of the generated .vxa files with the graphical interface VoxCAD.
+After running basic.py for some time, you can start having a look at some of the evolved morphologies and behaviors by opening up some of the generated .vxa files within the VoxCAD GUI. A .vxa file is just an XML file representing a robot that can be simulated by VoxCad/Voxelyze. Different custom versions of the physics engine can play slightly different .vxa files.
 
     ./evosoro/evosoro/_voxcad/release/VoxCad
 
-Then selecting the desired .vxa file from 
+Then select the desired .vxa file from 
 
     "File -> Import -> Simulation"
 
 The .vxa files for the best performing individuals will be saved in evosoro/evosoro/basic_data/bestSoFar/fitOnly.
+
+Once the design is loaded, you can start the physics simulation by clicking the fifth icon from the right in the top bar ("Physics Sandbox").
 
 
 <!--
