@@ -112,7 +112,7 @@ Navigate to the _voxcad directory and compile as follows:
     cd evosoro/evosoro/_voxcad/
     make
 
-Install the voxelyze library:
+Install the voxelyze library.
 
     cd Voxelyze
     make
@@ -152,12 +152,11 @@ If you are having difficulty building scipy try
 --------
 
 After running basic.py for some time, you can start having a look at some of the evolved morphologies and behaviors by opening up some of the generated .vxa files within the VoxCAD GUI. A .vxa file is just an XML file representing a robot that can be simulated by VoxCad/Voxelyze. Different custom versions of the physics engine can play slightly different .vxa files.
-
-Navigate to evosoro/evosoro/_voxcad/release.
+Navigate to evosoro/evosoro/_voxcad/release:
     
     cd ../_voxcad/release
     
-Open VoxCad.
+Open VoxCad:
 
     ./VoxCad
 
