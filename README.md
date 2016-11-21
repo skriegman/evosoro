@@ -192,7 +192,7 @@ Online documentation for Voxelyze is available [here](http://jonhiller.github.io
 
 Released under a MIT License (MIT)
 
-<
+
 6. References
 --------------------
 
