@@ -61,7 +61,7 @@ target/
 # ?
 *.svn
 evosoro/_voxcad_forTransfer
-evosoro/examples/*_*
+#evosoro/examples/*_*
 evosoro/examples/plotAfpoTraces.py
 
 
@@ -70,7 +70,7 @@ evosoro/pbs/
 evosoro/data_analysis/
 evosoro/examples/tests_data/
 evosoro/_voxcad/GeneratedFiles/
-#evosoro/_voxcad_land_water/GeneratedFiles
+evosoro/_voxcad_land_water/GeneratedFiles
 evosoro/_voxcad_land_water/Installer
 evosoro/_voxcad_forTransfer/GeneratedFiles
 evosoro/examples/qhull
