@@ -198,7 +198,7 @@ Released under a MIT License (MIT)
 
 The difficult of co-optimizing brain and body:
 
->Cheney, N., Bongard, J., SunSpiral, V., & Lipson, H. (2016). On the Difficulty of Co-Optimizing Morphology and Control in Evolved Virtual Creatures.
+>Cheney, N., Bongard, J., SunSpiral, V., & Lipson, H. (2016). *On the Difficulty of Co-Optimizing Morphology and Control in Evolved Virtual Creatures.* In Proceedings of The Fifteenth International Conference on the Synthesis and Simulation of Living Systems, ALIFE XV
 
 Evolution of growing soft robots:
 
@@ -211,15 +211,15 @@ Evolution of swimming soft robots:
 
 From a cellular automata perspective:
 
->Cheney, N., & Lipson, H. (2016). Topological evolution for embodied cellular automata. Theoretical Computer Science, 633, 19-27.
+>Cheney, N., & Lipson, H. (2016). *Topological evolution for embodied cellular automata.* Theoretical Computer Science, 633, 19-27.
 
 A more complex task:
 
->Cheney, N., Bongard, J., & Lipson, H. (2015). Evolving Soft Robots in Tight Spaces. In Proceedings of the 2015 Annual Conference on Genetic and Evolutionary Computation (pp. 935-942). ACM.
+>Cheney, N., Bongard, J., & Lipson, H. (2015). *Evolving Soft Robots in Tight Spaces.* In Proceedings of the 2015 Annual Conference on Genetic and Evolutionary Computation (pp. 935-942). ACM.
 
 A more complex controller:
 
->Cheney, N., Clune, J., & Lipson, H. (2014). Evolved electrophysiological soft robots. In ALIFE (Vol. 14, pp. 222-229).
+>Cheney, N., Clune, J., & Lipson, H. (2014). *Evolved electrophysiological soft robots.* In ALIFE (Vol. 14, pp. 222-229).
 
 
 Voxelyze & VoxCad:
