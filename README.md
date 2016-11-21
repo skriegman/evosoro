@@ -38,7 +38,7 @@ The library was designed and developed by <a href="https://skriegman.github.io/"
 ------
 
 A full list of papers which contributed to the development of this code base may be found in Section 6. 
-If using this code for academic purposes please cite the following two papers and consider citing the any relevant publications from Section 6. 
+If using this code for academic purposes please cite the following two papers and consider citing any relevant publications from Section 6. 
 
 Physical simulation:
 
