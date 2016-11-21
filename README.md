@@ -207,7 +207,7 @@ Evolution of growing soft robots:
 
 Evolution of swimming soft robots:
 
->Corucci, F., Cheney, N., Lipson, H., Laschi, C., & Bongard, J. (2016).*Evolving swimming soft-bodied creatures.* In Late Breaking Proceedings of The Fifteenth International Conference on the Synthesis and Simulation of Living Systems, ALIFE XV (p. 6).
+>Corucci, F., Cheney, N., Lipson, H., Laschi, C., & Bongard, J. (2016). *Evolving swimming soft-bodied creatures.* In Late Breaking Proceedings of The Fifteenth International Conference on the Synthesis and Simulation of Living Systems, ALIFE XV (p. 6).
 
 From a cellular automata perspective:
 
