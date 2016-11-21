@@ -206,7 +206,7 @@ Evolution of swimming soft robots:
 >Corucci, F., Cheney, N., Lipson, H., Laschi, C., & Bongard, J. (2016).*Evolving swimming soft-bodied creatures.* In Late Breaking Proceedings of The Fifteenth International Conference on the Synthesis and Simulation of Living Systems, ALIFE XV (p. 6).
 
 
-VoxCad/Voxelyze:
+Voxelyze & VoxCad:
 
 >Hiller, J., & Lipson, H. (2014). *Dynamic simulation of soft multimaterial 3d-printed objects.* Soft Robotics, 1(1), 88-101.
 
@@ -215,7 +215,7 @@ Evolution of soft robots using generative encodings (CPPN):
 
 >Cheney, N., MacCurdy, R., Clune, J., & Lipson, H. (2013). *Unshackling evolution: evolving soft robots with multiple materials and a powerful generative encoding.* In Proceedings of the 15th annual conference on Genetic and evolutionary computation (pp. 167-174). ACM.
 
-VoxCad/Voxelyze:
+Voxelyze & VoxCad plus evolving (and printing) soft robots:
 
 >Hiller, J., & Lipson, H. (2012). *Automatic design and manufacture of soft robots.* IEEE Transactions on Robotics, 28(2), 457-466.
 
