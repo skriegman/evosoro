@@ -38,15 +38,19 @@ The library was designed and developed by <a href="https://skriegman.github.io/"
 ------
 
 A full list of papers which contributed to the development of this code base may be found in Section 6. 
-If using this code for academic purposes please cite the following two papers and consider citing the most relevant publications from Section 6. 
+If using this code for academic purposes please cite the following two papers and consider citing the any relevant publications from Section 6. 
 
-Hiller, J., & Lipson, H. (2014). 
-*Dynamic simulation of soft multimaterial 3d-printed objects.*
-Soft Robotics, 1(1), 88-101.
+Physical simulation:
 
-Cheney, N., MacCurdy, R., Clune, J., & Lipson, H. (2013). 
-*Unshackling evolution: evolving soft robots with multiple materials and a powerful generative encoding.* 
-In Proceedings of the 15th annual conference on Genetic and evolutionary computation (pp. 167-174). ACM.
+>Hiller, J., & Lipson, H. (2014). 
+>*Dynamic simulation of soft multimaterial 3d-printed objects.*
+>Soft Robotics, 1(1), 88-101.
+
+Encoding and optimization:
+
+>Cheney, N., MacCurdy, R., Clune, J., & Lipson, H. (2013). 
+>*Unshackling evolution: evolving soft robots with multiple materials and a powerful generative encoding.* 
+>In Proceedings of the 15th annual conference on Genetic and evolutionary computation (pp. 167-174). ACM.
 
 
 
