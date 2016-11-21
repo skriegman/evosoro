@@ -34,34 +34,21 @@ evosoro: soft robot simulator
 
 The library was designed and developed by <a href="https://skriegman.github.io/" target="_blank">Sam Kriegman</a>, <a href="http://sssa.bioroboticsinstitute.it/user/1507" target="_blank">Francesco Corucci</a> and <a href="http://www.ncheney.com/" target="_blank">Nick Cheney</a> at the <a href="http://www.meclab.org" target="_blank">Morphology, Evolution & Cognition Laboratory</a>, <a href="http://www.uvm.edu/~cmplxsys/" target="_blank">Vermont Complex Systems Center</a>, University of Vermont (USA).
 
-Citing
+1. Citing
 ------
 
-If using this code for academic purposes please cite some of the following papers, selecting the most relevant publication to your purposes:
-
-Generic VoxCad/Voxelyze reference:
+A full list of papers which contributed to the development of this code base may be found in Section 6. 
+If using this code for academic purposes please cite the following two papers and additionaly consider citing the most relevant publications from Section 6. 
 
 Hiller, J., & Lipson, H. (2014). 
 *Dynamic simulation of soft multimaterial 3d-printed objects.*
 Soft Robotics, 1(1), 88-101.
 
-Evolution of soft robots using generative encodings (CPPN):
-
 Cheney, N., MacCurdy, R., Clune, J., & Lipson, H. (2013). 
 *Unshackling evolution: evolving soft robots with multiple materials and a powerful generative encoding.* 
 In Proceedings of the 15th annual conference on Genetic and evolutionary computation (pp. 167-174). ACM.
 
-Evolution of growing soft robots:
 
-Corucci, F., Cheney, N., Lipson, H., Laschi, C., & Bongard, J. (2016).
-*Material properties affect evolution’s ability to exploit morphological computation in growing soft-bodied creatures.*
-In Proceedings of The Fifteenth International Conference on the Synthesis and Simulation of Living Systems, ALIFE XV (pp. 234-241).
-
-Evolution of swimming soft robots:
-
-Corucci, F., Cheney, N., Lipson, H., Laschi, C., & Bongard, J. (2016).
-*Evolving swimming soft-bodied creatures.*
-In Late Breaking Proceedings of The Fifteenth International Conference on the Synthesis and Simulation of Living Systems, ALIFE XV (p. 6).
 
 <!--
 Dependencies
@@ -86,7 +73,7 @@ Dependencies
 - [seaborn](http://seaborn.pydata.org/)
 -->
 
-Installation
+2. Installation
 ------------
 
 <!--To install the released version, just do-->
@@ -97,7 +84,7 @@ Installation
 
 <!--    pip install git+git://github.com/skriegman/evosoro.git#egg=evosoro-->
 
-It is recommended that you install [anaconda](https://docs.continuum.io/anaconda/install#) as your Python distribution. Anaconda is a free package manager and Python distribution that includes all of the dependencies required for evosoro. However if you instead choose to manually install Python,
+It is recommended that you install [anaconda](https://docs.continuum.io/anaconda/install#) as your Python (2.7) distribution. Anaconda is a free package manager and Python distribution that includes all of the dependencies required for evosoro. However if you instead choose to manually install Python 2.7,
 
     sudo apt-get install python-dev python-pip
     sudo pip install numpy networkx scipy decorator pandas
@@ -161,7 +148,7 @@ If you are having difficulty building scipy try
 -->
 
 
-Examples
+3. Examples
 --------
 
 After running basic.py for some time, you can start having a look at some of the evolved morphologies and behaviors by opening up some of the generated .vxa files within the VoxCAD GUI. A .vxa file is just an XML file representing a robot that can be simulated by VoxCad/Voxelyze. Different custom versions of the physics engine can play slightly different .vxa files.
@@ -194,29 +181,44 @@ The examples:
  
 -->
 
-Documentation
+4. Documentation
 -------------
 
 Online documentation for Voxelyze is available [here](http://jonhiller.github.io/Voxelyze/annotated.html).
 
 
-License
+5. License
 -------
 
 Released under a MIT License (MIT)
 
 
+6. References
+--------------------
 
-<!--Other papers-->
+Evolution of growing soft robots:
 
-<!--Hiller, J., & Lipson, H. (2012). -->
-<!--Automatic design and manufacture of soft robots. -->
-<!--IEEE Transactions on Robotics, 28(2), 457-466.-->
+>Corucci, F., Cheney, N., Lipson, H., Laschi, C., & Bongard, J. (2016). *Material properties affect evolution’s ability to exploit morphological computation in growing soft-bodied creatures.* In Proceedings of The Fifteenth International Conference on the Synthesis and Simulation of Living Systems, ALIFE XV (pp. 234-241).
 
-<!--F. Corucci, N. Cheney, H. Lipson, C. Laschi, and J. Bongard, "Evolving swimming soft-bodied creatures", ALIFE XV, The Fifteenth International Conference on the Synthesis and Simulation of Living Systems, 2016 (late breaking abstract)-->
-<!--https://youtu.be/4ZqdvYrZ3ro-->
-<!--F. Corucci, N. Cheney, H. Lipson, C. Laschi, and J. Bongard, “Material properties affect evolution’s ability to exploit morphological computation in growing soft-bodied creatures,”  ALIFE XV, The Fifteenth International Conference on the Synthesis and Simulation of Living Systems, 2016-->
-<!--https://youtu.be/Cw2SwPNwcfM-->
+
+Evolution of swimming soft robots:
+
+>Corucci, F., Cheney, N., Lipson, H., Laschi, C., & Bongard, J. (2016).*Evolving swimming soft-bodied creatures.* In Late Breaking Proceedings of The Fifteenth International Conference on the Synthesis and Simulation of Living Systems, ALIFE XV (p. 6).
+
+
+VoxCad/Voxelyze:
+
+>Hiller, J., & Lipson, H. (2014). *Dynamic simulation of soft multimaterial 3d-printed objects.* Soft Robotics, 1(1), 88-101.
+
+
+Evolution of soft robots using generative encodings (CPPN):
+
+>Cheney, N., MacCurdy, R., Clune, J., & Lipson, H. (2013). *Unshackling evolution: evolving soft robots with multiple materials and a powerful generative encoding.* In Proceedings of the 15th annual conference on Genetic and evolutionary computation (pp. 167-174). ACM.
+
+VoxCad/Voxelyze:
+
+>Hiller, J., & Lipson, H. (2012). *Automatic design and manufacture of soft robots.* IEEE Transactions on Robotics, 28(2), 457-466.
+
 
 
 
