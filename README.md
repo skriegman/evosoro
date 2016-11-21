@@ -192,9 +192,13 @@ Online documentation for Voxelyze is available [here](http://jonhiller.github.io
 
 Released under a MIT License (MIT)
 
-
+<
 6. References
 --------------------
+
+The difficult of co-optimizing brain and body:
+
+>Cheney, N., Bongard, J., SunSpiral, V., & Lipson, H. (2016). On the Difficulty of Co-Optimizing Morphology and Control in Evolved Virtual Creatures.
 
 Evolution of growing soft robots:
 
@@ -204,6 +208,18 @@ Evolution of growing soft robots:
 Evolution of swimming soft robots:
 
 >Corucci, F., Cheney, N., Lipson, H., Laschi, C., & Bongard, J. (2016).*Evolving swimming soft-bodied creatures.* In Late Breaking Proceedings of The Fifteenth International Conference on the Synthesis and Simulation of Living Systems, ALIFE XV (p. 6).
+
+From a cellular automata perspective:
+
+>Cheney, N., & Lipson, H. (2016). Topological evolution for embodied cellular automata. Theoretical Computer Science, 633, 19-27.
+
+A more complex task:
+
+>Cheney, N., Bongard, J., & Lipson, H. (2015). Evolving Soft Robots in Tight Spaces. In Proceedings of the 2015 Annual Conference on Genetic and Evolutionary Computation (pp. 935-942). ACM.
+
+A more complex controller:
+
+>Cheney, N., Clune, J., & Lipson, H. (2014). Evolved electrophysiological soft robots. In ALIFE (Vol. 14, pp. 222-229).
 
 
 Voxelyze & VoxCad:
@@ -218,7 +234,5 @@ Evolution of soft robots using generative encodings (CPPN):
 Voxelyze & VoxCad plus evolving (and printing) soft robots:
 
 >Hiller, J., & Lipson, H. (2012). *Automatic design and manufacture of soft robots.* IEEE Transactions on Robotics, 28(2), 457-466.
-
-
 
 
