@@ -151,7 +151,7 @@ If you are having difficulty building scipy try
 3. Examples
 --------
 
-After running basic.py for some time, you can start having a look at some of the evolved morphologies and behaviors by opening up some of the generated .vxa files within the VoxCAD GUI. A .vxa file is just an XML file representing a robot that can be simulated by VoxCad/Voxelyze. Different custom versions of the physics engine can play slightly different .vxa files.
+After running basic.py for some time, you can start having a look at some of the evolved morphologies and behaviors by opening up some of the generated .vxa files within the VoxCAD GUI. A .vxa file is just an XML file representing a robot that can be simulated by VoxCad/Voxelyze. Different custom versions of the physics engine can play slightly different .vxa files. Navigate to evosoro/evosoro/_voxcad/release
     
     cd ../_voxcad/release
     ./VoxCad
@@ -162,7 +162,7 @@ Then select the desired .vxa file from
 
 The .vxa files for the best performing individuals will be saved in evosoro/evosoro/basic_data/bestSoFar/fitOnly.
 
-Once the design is loaded, you can start the physics simulation by clicking the fifth icon from the right in the top bar ("Physics Sandbox").
+Once the design is loaded, you can start the physics simulation by clicking the fifth icon from the right in the top bar ("Physics Sandbox"). <img src="https://github.com/skriegman/evosoro/blob/master/evosoro/_voxcad/VoxCad/Icons/Sandbox.png" height="35" width="35">
 
 
 <!--
