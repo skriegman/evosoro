@@ -3,27 +3,27 @@ evosoro: soft robot simulator
 
 <div class="row">
 <a href=https://youtu.be/EXuR_soDnFo>
-<img src="https://github.com/skriegman/test/blob/master/nick.png" height="135" width="135">
+<img src="https://github.com/skriegman/img/blob/master/nick.png" height="135" width="135">
 </a>
 
 <a href=https://www.youtube.com/watch?v=HgWQ-gPIvt4>
-<img src="https://github.com/skriegman/test/blob/master/electro.png" height="135" width="135">
+<img src="https://github.com/skriegman/img/blob/master/electro.png" height="135" width="135">
 </a>
 
 <a href=https://youtu.be/4ZqdvYrZ3ro>
-<img src="https://github.com/skriegman/test/blob/master/swimming.png" height="135" width="135">
+<img src="https://github.com/skriegman/img/blob/master/swimming.png" height="135" width="135">
 </a>
 
 <a href=https://youtu.be/Cw2SwPNwcfM>
-<img src="https://github.com/skriegman/test/blob/master/plant1.png" height="135" width="135">
+<img src="https://github.com/skriegman/img/blob/master/plant1.png" height="135" width="135">
 </a>
 
 <a href=https://www.youtube.com/watch?v=XqIUJcuOgmwl>
-<img src="https://github.com/skriegman/test/blob/master/teeth1.png" height="135" width="135">
+<img src="https://github.com/skriegman/img/blob/master/teeth1.png" height="135" width="135">
 </a>
 
 <a href=https://www.youtube.com/watch?v=r_SL8VUt-wA>
-<img src="https://github.com/skriegman/test/blob/master/cage.png" height="135" width="135">
+<img src="https://github.com/skriegman/img/blob/master/cage.png" height="135" width="135">
 </a>
 
 </div>
