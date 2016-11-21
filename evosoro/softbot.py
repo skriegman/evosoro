@@ -149,7 +149,8 @@ class GenotypeToPhenotypeMap(object):
         new.__dict__.update(deepcopy(self.__dict__, memo))
         return new
 
-    def add_map(self, name, tag, func=sigmoid, output_type=float, dependency_order=None, logging_stats=np.mean):
+    def add_map(self, name, tag, func=sigmoid, output_type=float, dependency_order=None, params=None, param_tags=None,
+                env_kws=None, logging_stats=np.mean):
         """Add an association between a genotype output and a VoxCad parameter.
 
         Parameters
@@ -170,24 +171,49 @@ class GenotypeToPhenotypeMap(object):
         dependency_order : list
             Order of operations
 
+        params : list
+            Constants dictating parameters of the mapping
+
+        param_tags : list
+            Tags for any constants associated with the mapping
+
+        env_kws : dict
+            Specifies which function of the output state to use (on top of func) to set an Env attribute
+
         logging_stats : func or list
             One or more functions (statistics) of the output to be logged as additional column(s) in logging
-
 
         """
         if (dependency_order is not None) and not isinstance(dependency_order, list):
             dependency_order = [dependency_order]
+
+        if params is not None:
+            assert (param_tags is not None)
+            if not isinstance(params, list):
+                params = [params]
+
+        if param_tags is not None:
+            assert (params is not None)
+            if not isinstance(param_tags, list):
+                param_tags = [param_tags]
+            param_tags = [xml_format(t) for t in param_tags]
+
+        if (env_kws is not None) and not isinstance(env_kws, dict):
+            env_kws = {env_kws: np.mean}
 
         if (logging_stats is not None) and not isinstance(logging_stats, list):
             logging_stats = [logging_stats]
 
         self.mapping[name] = {"tag": xml_format(tag),
                               "func": func,
-                              "logging_stats": logging_stats,
                               "dependency_order": dependency_order,
                               "state": None,
                               "old_state": None,
-                              "output_type": output_type}
+                              "output_type": output_type,
+                              "params": params,
+                              "param_tags": param_tags,
+                              "env_kws": env_kws,
+                              "logging_stats": logging_stats}
 
     def add_output_dependency(self, name, dependency_name, requirement, material_if_true=None, material_if_false=None):
         """Add a dependency between two genotype outputs.

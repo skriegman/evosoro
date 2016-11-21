@@ -39,6 +39,13 @@ def write_voxelyze_file(sim, env, individual, run_directory, run_name):
 
     # TODO: work in base.py to remove redundant static text in this function
 
+    # update any env variables based on outputs instead of writing outputs in
+    for name, details in individual.genotype.to_phenotype_mapping.items():
+        if details["env_kws"] is not None:
+            for env_key, env_func in details["env_kws"].items():
+                setattr(env, env_key, env_func(details["state"]))  # currently only used when evolving frequency
+                # print env_key, env_func(details["state"])
+
     voxelyze_file = open(run_directory + "/voxelyzeFiles/" + run_name + "--id_%05i.vxa" % individual.id, "w")
 
     voxelyze_file.write(
@@ -273,35 +280,34 @@ def write_voxelyze_file(sim, env, individual, run_directory, run_name):
 
     for name, details in individual.genotype.to_phenotype_mapping.items():
 
+        # start tag
         voxelyze_file.write(details["tag"]+"\n")
 
-        for z in range(individual.genotype.orig_size_xyz[2]):
-            voxelyze_file.write("<Layer><![CDATA[")
-            for y in range(individual.genotype.orig_size_xyz[1]):
-                for x in range(individual.genotype.orig_size_xyz[0]):
-                    # if y < 0 or x < 0 or\
-                    #                 y >= individual.genotype.orig_size_xyz[1] or\
-                    #                 x >= individual.genotype.orig_size_xyz[0] or \
-                    #                 z >= individual.genotype.orig_size_xyz[2]:
-                    #     voxelyze_file.write("0, ")
-                    # else:
-                    # state = None
-                    # for name, details in individual.genotype.to_phenotype_mapping.items():
-                        # print name
-                        # print details["state"]
-                        # state = int(details["state"][x, y, z])
-                    state = details["output_type"](details["state"][x, y, z])
-                    # sys.exit(0)
-                    # for n, network in enumerate(individual.genotype):
-                    #     if name in network.output_node_names:
-                    #         state = individual.genotype[n].graph.node[name]["state"][x, y, z]
+        # record any additional params associated with the output
+        if details["params"] is not None:
+            for param_tag, param in zip(details["param_tags"], details["params"]):
+                voxelyze_file.write(param_tag + str(param) + "</" + param_tag[1:] + "\n")
 
-                    voxelyze_file.write(str(state))
-                    if details["tag"] != "<Data>":  # TODO more dynamic
-                        voxelyze_file.write(", ")
-                    string_for_md5 += str(state)
+        if details["env_kws"] is None:
+            # write the output state matrix to file
+            for z in range(individual.genotype.orig_size_xyz[2]):
+                voxelyze_file.write("<Layer><![CDATA[")
+                for y in range(individual.genotype.orig_size_xyz[1]):
+                    for x in range(individual.genotype.orig_size_xyz[0]):
 
-            voxelyze_file.write("]]></Layer>\n")
+                        state = details["output_type"](details["state"][x, y, z])
+                        # for n, network in enumerate(individual.genotype):
+                        #     if name in network.output_node_names:
+                        #         state = individual.genotype[n].graph.node[name]["state"][x, y, z]
+
+                        voxelyze_file.write(str(state))
+                        if details["tag"] != "<Data>":  # TODO more dynamic
+                            voxelyze_file.write(", ")
+                        string_for_md5 += str(state)
+
+                voxelyze_file.write("]]></Layer>\n")
+
+        # end tag
         voxelyze_file.write("</" + details["tag"][1:] + "\n")
 
     voxelyze_file.write(

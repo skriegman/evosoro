@@ -16,9 +16,14 @@ def positive_sigmoid(x):
     return (1 + sigmoid(x)) * 0.5
 
 
-def truncated_positive_sigmoid(x, x_min):
-    pos_sig = positive_sigmoid(x)
-    return (1 - x_min) * pos_sig + x_min
+def rescaled_sigmoid(x, x_min=-1, x_max=1):
+    return (x_max - x_min) * sigmoid(x) + x_min
+
+def rescaled_positive_sigmoid(x, x_min=0, x_max=1):
+    return (x_max - x_min) * positive_sigmoid(x) + x_min
+
+def inverted_sigmoid(x):
+    return sigmoid(x) ** -1
 
 
 def neg_abs(x):
