@@ -96,13 +96,14 @@ Dependencies
 It is recommended that you install [Anaconda](https://docs.continuum.io/anaconda/install#) as your Python (2.7) distribution. Anaconda is a free package manager and Python distribution that includes all of the dependencies required for evosoro. However if you instead choose to manually install Python 2.7,
 
     sudo apt-get install python-dev python-pip
-    sudo pip install numpy networkx scipy decorator pandas
+    sudo pip install numpy networkx scipy decorator
 
-In some cases, errors have been observed during the installation of scipy. If that happens, try installing:
+If you experience an error installing scipy it might be due to the incompatibility of different fortran compilers (see [scipy installation](https://docs.scipy.org/doc/numpy-1.10.1/user/install.html)). In most cases, you must build numpy/scipy with the same FORTRAN compiler used to build blas/lapack/atlas. It is recommended that you can install the necessary package for optimized ATLAS with this command:
 
 	sudo apt-get install libatlas-base-dev gfortran
 
-then repeat the pip install command (sudo pip install numpy networkx scipy decorator pandas).
+then repeat the pip install command (sudo pip install numpy networkx scipy decorator).
+
 
 Install Qt and QMake if you have not already done so, specifically these packages: "libqt4-dev", "qt4-qmake", "libqwt-dev", "freeglut3-dev" and "zlib1g-dev".
 
