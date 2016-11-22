@@ -30,9 +30,16 @@ evosoro: soft robot simulator
 
 <br> 
 
-<b>Evosoro</b> is a Python soft robot simulation library based on the Voxelyze physics engine. It provides a high-level interface for the dynamic simulation and automated evolutionary design of soft multimaterial robots.
+<b>Evosoro</b> is a Python soft robot simulation library based on the Voxelyze physics engine. It provides a high-level interface for the dynamic simulation and automated design of soft multimaterial robots.
+<!-- evolutionary design of soft multimaterial robots. -->
 
-The library was designed and developed by <a href="https://skriegman.github.io/" target="_blank">Sam Kriegman</a>, <a href="http://sssa.bioroboticsinstitute.it/user/1507" target="_blank">Francesco Corucci</a> and <a href="http://www.ncheney.com/" target="_blank">Nick Cheney</a> at the <a href="http://www.meclab.org" target="_blank">Morphology, Evolution & Cognition Laboratory</a>, <a href="http://www.uvm.edu/~cmplxsys/" target="_blank">Vermont Complex Systems Center</a>, University of Vermont (USA).
+The library was designed and developed by the <a href="http://www.meclab.org" target="_blank">Morphology, Evolution & Cognition Laboratory</a>, University of Vermont, USA.
+<!--
+<a href="https://skriegman.github.io/" target="_blank">Sam Kriegman</a>, <a href="http://sssa.bioroboticsinstitute.it/user/1507" target="_blank">Francesco Corucci</a> and <a href="http://www.ncheney.com/" target="_blank">Nick Cheney</a> at 
+the <a href="http://www.meclab.org" target="_blank">Morphology, Evolution & Cognition Laboratory</a>, 
+<a href="http://www.uvm.edu/~cmplxsys/" target="_blank">Vermont Complex Systems Center</a>,
+University of Vermont, USA.
+-->
 
 1. Citing
 ------
@@ -88,7 +95,7 @@ Dependencies
 
 <!--    pip install git+git://github.com/skriegman/evosoro.git#egg=evosoro-->
 
-It is recommended that you install [anaconda](https://docs.continuum.io/anaconda/install#) as your Python (2.7) distribution. Anaconda is a free package manager and Python distribution that includes all of the dependencies required for evosoro. However if you instead choose to manually install Python 2.7,
+It is recommended that you install [Anaconda](https://docs.continuum.io/anaconda/install#) as your Python (2.7) distribution. Anaconda is a free package manager and Python distribution that includes all of the dependencies required for evosoro. However if you instead choose to manually install Python 2.7,
 
     sudo apt-get install python-dev python-pip
     sudo pip install numpy networkx scipy decorator pandas
