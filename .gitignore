@@ -63,7 +63,7 @@ target/
 evosoro/_voxcad_forTransfer
 #evosoro/examples/*_*
 evosoro/examples/plotAfpoTraces.py
-
+evosoro/examples/*_data
 
 
 evosoro/pbs/
