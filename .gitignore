@@ -69,8 +69,7 @@ evosoro/examples/*_data
 evosoro/pbs/
 evosoro/data_analysis/
 evosoro/examples/tests_data/
-evosoro/_voxcad/GeneratedFiles/
-evosoro/_voxcad_land_water/GeneratedFiles
+evosoro/_voxcad*/GeneratedFiles
 evosoro/_voxcad_land_water/Installer
 evosoro/_voxcad_forTransfer/GeneratedFiles
 evosoro/examples/qhull
