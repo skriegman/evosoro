@@ -99,7 +99,7 @@ It is recommended that you install [Anaconda](https://docs.continuum.io/anaconda
     sudo apt-get install python-dev python-pip
     sudo pip install scipy numpy networkx decorator  
 
-If you experience an error installing scipy it might be due to the incompatibility of different fortran compilers (see [scipy installation](https://docs.scipy.org/doc/numpy-1.10.1/user/install.html)). <!--In most cases, you must build numpy/scipy with the same fortran compiler used to build blas/lapack/atlas.--> Try the following:
+If you experience an error installing scipy it might be due to the incompatibility of different fortran compilers (see [scipy installation](https://docs.scipy.org/doc/numpy-1.10.1/user/install.html)). In most cases, you must build numpy/scipy with the same fortran compiler used to build blas/lapack/atlas. Try the following:
 
 	sudo apt-get install libatlas-base-dev gfortran
 	sudo pip install scipy numpy networkx decorator
