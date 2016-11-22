@@ -98,6 +98,12 @@ It is recommended that you install [Anaconda](https://docs.continuum.io/anaconda
     sudo apt-get install python-dev python-pip
     sudo pip install numpy networkx scipy decorator pandas
 
+In some cases, errors have been observed during the installation of scipy. If that happens, try installing:
+
+	sudo apt-get install libatlas-base-dev gfortran
+
+then repeat the pip install command (sudo pip install numpy networkx scipy decorator pandas).
+
 Install Qt and QMake if you have not already done so, specifically these packages: "libqt4-dev", "qt4-qmake", "libqwt-dev", "freeglut3-dev" and "zlib1g-dev".
 
     sudo apt-get install libqt4-dev qt4-qmake libqwt-dev freeglut3-dev zlib1g-dev
