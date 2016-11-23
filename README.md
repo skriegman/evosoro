@@ -31,7 +31,10 @@ evosoro: soft robot simulator
 Evosoro is a Python soft robot simulation library based on the Voxelyze physics engine. It provides a high-level interface for the dynamic simulation and automated design of soft multimaterial robots.
 <!-- evolutionary design of soft multimaterial robots. -->
 
-The library was designed and developed by the <a href="http://www.meclab.org" target="_blank">Morphology, Evolution & Cognition Laboratory</a>, University of Vermont, USA.
+Evosoro was designed and developed by the <a href="http://www.meclab.org" target="_blank">Morphology, Evolution & Cognition Laboratory</a>, University of Vermont. 
+
+The library is built on top of the open source VoxCAD and the underlying voxel physics engine (Voxelyze) which were both developed by the <a href="http://www.creativemachineslab.com/" target="_blank">Creative Machines Lab</a>, Columbia University.
+
 <!--
 <a href="https://skriegman.github.io/" target="_blank">Sam Kriegman</a>, <a href="http://sssa.bioroboticsinstitute.it/user/1507" target="_blank">Francesco Corucci</a> and <a href="http://www.ncheney.com/" target="_blank">Nick Cheney</a> at 
 the <a href="http://www.meclab.org" target="_blank">Morphology, Evolution & Cognition Laboratory</a>, 
