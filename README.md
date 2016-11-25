@@ -189,18 +189,18 @@ The .vxa files for the best performing individuals will be saved in
 
     evosoro/evosoro/basic_data/bestSoFar/fitOnly.
 
-Once the design is loaded, you can start the physics simulation by clicking the <img src="https://github.com/skriegman/evosoro/blob/master/evosoro/_voxcad/VoxCad/Icons/Sandbox.png" height="25" width="25"> icon in the top bar ("Physics Sandbox").  The robot should start moving.
+Once the design is loaded, you can start the physics simulation by clicking the <img src="https://github.com/skriegman/evosoro/blob/master/evosoro/_voxcad/VoxCad/Icons/Sandbox.png" height="25" width="25"> icon in the top bar ("Physics Sandbox").  The robot should start moving: if it doesn't, please check the following section (Known issues).
 
 4. Known issues
 --------
 If the robot does not move, disappears, or seems to behave in an unexpected manner when running a .vxa file in VoxCad (GUI), you may be affected by a known problem observed on some non-US machines.
-The problem is due to an unexpected behavior of the <a href="http://www.cplusplus.com/reference/cstdlib/atof/">atof</a> when the system's locale differs from en_US.UTF-8, which entails loading wrong parameters from the .vxa file (in some cases it was observed how the atof function was approximating all double and floating point values to their integer part, which was the cause of the unexpected behavior).
+The problem is due to an unexpected behavior of the <a href="http://www.cplusplus.com/reference/cstdlib/atof/">atof</a> function when the system's <a href="https://en.wikipedia.org/wiki/Locale_(computer_software)">locale</a> differs from en_US.UTF-8, which entails loading wrong parameters from the .vxa file (in some cases it was observed how the atof function was approximating all double and floating point values to their integer part, which was the cause of the unexpected behavior).
 
-While we work on a better solution, you can fix this problem by making sure that your machine is configured according to an US locale.
+While we work on a better solution, you can fix this problem by making sure that your machine is configured according to a US locale.
 
     sudo gedit /etc/default/locale
 
-Paste the following:
+Replace the content with the following:
 
     LANG="en_US.UTF-8"
     LC_NUMERIC="en_US.UTF-8"
