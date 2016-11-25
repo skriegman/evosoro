@@ -1,7 +1,7 @@
 #!/usr/bin/python
 """
 
-In this example we plug a different version of VoxCad in (_voxcad_land_water),which implements some additional features.
+In this example we plug a different version of VoxCad in (_voxcad_land_water), which implements some additional features.
 
 We evolve soft robots in a simple fluid environment (as in swimming_basic.py). In addition to some discrete phenotypic
 traits (voxel material based on a predefined palette of materials), we evolve some continuous phenotypic traits:
@@ -9,15 +9,14 @@ the stiffness distribution and the actuation phase offset, which are real values
 evolve the global actuation frequency.
 
 
-Additional References
+References
 ---------------------
 
-The mesh-based fluid model implemented in _voxcad_land_water is briefly described in this short publication:
+If using this code or the "_voxcad_land_water" version of the simulator, please cite:
 
-    F. Corucci, N. Cheney, H. Lipson, C. Laschi, and J. Bongard,
+  - F. Corucci, N. Cheney, H. Lipson, C. Laschi, and J. Bongard,
     "Evolving swimming soft-bodied creatures"
-    ALIFE XV, The Fifteenth International Conference on the Synthesis and Simulation of Living Systems, 2016
-
+    Late breaking proceedings of The Fifteenth International Conference on the Synthesis and Simulation of Living Systems (ALIFE XV), 2016
     Available at: http://sssa.bioroboticsinstitute.it/sites/default/files/user_docs/2016_ALIFE_LateBreaking_SWIMMING.pdf
     Related video: https://youtu.be/4ZqdvYrZ3ro
 

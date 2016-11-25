@@ -13,15 +13,14 @@ telling to the physics engine that we want to simulate a fluid environment (floo
 are added).
 
 
-Additional References
+References
 ---------------------
 
-The mesh-based fluid model implemented in _voxcad_land_water is briefly described in this short publication:
+If using this code or the "_voxcad_land_water" version of the simulator, please cite:
 
-    F. Corucci, N. Cheney, H. Lipson, C. Laschi, and J. Bongard,
+  - F. Corucci, N. Cheney, H. Lipson, C. Laschi, and J. Bongard,
     "Evolving swimming soft-bodied creatures"
-    ALIFE XV, The Fifteenth International Conference on the Synthesis and Simulation of Living Systems, 2016
-
+    Late breaking proceedings of The Fifteenth International Conference on the Synthesis and Simulation of Living Systems (ALIFE XV), 2016
     Available at: http://sssa.bioroboticsinstitute.it/sites/default/files/user_docs/2016_ALIFE_LateBreaking_SWIMMING.pdf
     Related video: https://youtu.be/4ZqdvYrZ3ro
 

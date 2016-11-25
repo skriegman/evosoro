@@ -189,8 +189,31 @@ The .vxa files for the best performing individuals will be saved in
 
     evosoro/evosoro/basic_data/bestSoFar/fitOnly.
 
-Once the design is loaded, you can start the physics simulation by clicking the <img src="https://github.com/skriegman/evosoro/blob/master/evosoro/_voxcad/VoxCad/Icons/Sandbox.png" height="25" width="25"> icon in the top bar ("Physics Sandbox"). 
+Once the design is loaded, you can start the physics simulation by clicking the <img src="https://github.com/skriegman/evosoro/blob/master/evosoro/_voxcad/VoxCad/Icons/Sandbox.png" height="25" width="25"> icon in the top bar ("Physics Sandbox").  The robot should start moving.
 
+4. Known issues
+--------
+If the robot does not move, disappears, or seems to behave in an unexpected manner when running a .vxa file in VoxCad (GUI), you may be affected by a known problem observed on some non-US machines.
+The problem is due to an unexpected behavior of the <a href="http://www.cplusplus.com/reference/cstdlib/atof/">atof</a> when the system's locale differs from en_US.UTF-8, which entails loading wrong parameters from the .vxa file (in some cases it was observed how the atof function was approximating all double and floating point values to their integer part, which was the cause of the unexpected behavior).
+
+While we work on a better solution, you can fix this problem by making sure that your machine is configured according to an US locale.
+
+    sudo gedit /etc/default/locale
+
+Paste the following:
+
+    LANG="en_US.UTF-8"
+    LC_NUMERIC="en_US.UTF-8"
+    LC_TIME="en_US.UTF-8"
+    LC_MONETARY="en_US.UTF-8"
+    LC_PAPER="en_US.UTF-8"
+    LC_NAME="en_US.UTF-8"
+    LC_ADDRESS="en_US.UTF-8"
+    LC_TELEPHONE="en_US.UTF-8"
+    LC_MEASUREMENT="en_US.UTF-8"
+    LC_IDENTIFICATION="en_US.UTF-8"
+
+Save, close the file, and reboot.
 
 <!--
 ---------------------------------------------
@@ -209,19 +232,19 @@ The examples:
  
 -->
 
-4. Documentation
+5. Documentation
 -------------
 
-Online documentation for Voxelyze is available [here](http://jonhiller.github.io/Voxelyze/annotated.html).
+Although the code included in this repository diverged from the main VoxCad/Voxelyze development branch some time ago, useful indications could be find in the online Voxelyze documentation, available [here](http://jonhiller.github.io/Voxelyze/annotated.html).
 
 
-5. License
+6. License
 -------
 
 Released under a MIT License (MIT)
 
 
-6. References
+7. References
 --------------------
 
 The difficult of co-optimizing brain and body:
