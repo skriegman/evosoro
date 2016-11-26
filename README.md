@@ -127,10 +127,20 @@ Clone the repo.
 
     git clone https://github.com/skriegman/evosoro.git
 
-There are different well documented examples (evosoro/examples) and custom versions of VoxCad/Voxelyze (evosoro/_voxcad folders) included in this repository. Let's try running an example in which soft robots are optimized to locomote in a terrestrial environment, using an evolutionary algorithm and a basic version of the physics engine (the procedure is the same for all the examples). 
-Navigate to the _voxcad directory and compile as follows:
+There are different well documented examples (evosoro/examples) and custom versions of VoxCad/Voxelyze included in this repository (evosoro/_voxcad folders, see the corresponding readme file).
+Let's try running an example in which soft robots are optimized to locomote in a terrestrial environment, using an evolutionary algorithm and a basic version (_voxcad) of the physics engine (the procedure is the same for all the examples). 
+
+Navigate to the _voxcad directory:
 
     cd evosoro/evosoro/_voxcad/
+
+The following command compiles both VoxCad and Voxelyze, installing the library at the same time:
+
+./rebuild_everything.sh
+
+If you happen to modify VoxCad or Voxelyze in the future, you can call the same script to be sure to clean and recompile everything. 
+
+<!--
     make
 
 Install the voxelyze library.
@@ -139,7 +149,7 @@ Install the voxelyze library.
     make
     make installusr
     cd ../voxelyzeMain/
-    make
+    make -->
 
 Navigate back out to the examples folder and run basic.py
     

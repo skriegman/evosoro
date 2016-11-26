@@ -81,4 +81,5 @@ setup*
 MANIFEST
 .idea
 *.o
-*.fuse_hidden
+*.fuse_hidden*
+*~
