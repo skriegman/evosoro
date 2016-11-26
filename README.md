@@ -136,7 +136,7 @@ Navigate to the _voxcad directory:
 
 The following command compiles both VoxCad and Voxelyze, installing the library at the same time:
 
-./rebuild_everything.sh
+    ./rebuild_everything.sh
 
 If you happen to modify VoxCad or Voxelyze in the future, you can call the same script to be sure to clean and recompile everything. 
 
