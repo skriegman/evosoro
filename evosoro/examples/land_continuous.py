@@ -66,6 +66,9 @@ MIN_ELASTIC_MOD = 0.01e006  # when, evolving stiffness, min elastic mod
 MAX_ELASTIC_MOD = 1e006  # when, evolving stiffness, max elastic mod
 MAX_FREQUENCY = 4.0  # We also evolve a global actuation frequency, max frequency
 
+def frequency_func(x):
+    return MAX_FREQUENCY * 2.5 / (np.mean(1/x) + 1.5)  # SAM: inverse the additional inverse in read_write_voxelyze.py
+
 RUN_DIR = "land_continuous_data"  # Subdirectory where results are going to be generated
 RUN_NAME = "LandContinuous"
 CHECKPOINT_EVERY = 1  # How often to save an snapshot of the execution state to later resume the algorithm
@@ -91,9 +94,7 @@ class MyGenotype(Genotype):
         self.to_phenotype_mapping.add_map(name="phase_offset", tag="<PhaseOffset>", 
                                           func=partial(rescaled_positive_sigmoid, x_min=0, x_max=2*math.pi))
 
-        def freq_func(x): return MAX_FREQUENCY * 2.5 / (np.mean(inverted_sigmoid(x)) + 1.5)  # SAM: inverse the additional inverse in read_write_voxelyze.py
-        self.to_phenotype_mapping.add_map(name="frequency", tag="<TempPeriod>", func=freq_func, reduce_to_scalar=True,
-                                          env_kws="frequency")  # tag actually doesn't do anything here
+        self.to_phenotype_mapping.add_map(name="frequency", tag="<TempPeriod>", env_kws={"frequency": frequency_func})  # tag actually doesn't do anything here
 
         # Now adding a second CPPN, with three outputs. "shape" the geometry of the robot
         # (i.e. whether a particular voxel is empty or full),
