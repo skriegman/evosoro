@@ -1469,19 +1469,21 @@ vfloat CVXC_Material::GetModelStiffness(vfloat StrainIn) //returns the stiffness
 	return Elastic_Mod; //default
 }
 
-vfloat CVXC_Material::GetModelStress(const vfloat StrainIn, bool* const pIsPastYielded, bool* const pIsPastFail) const //returns the stiffness and stress of the current material model at the given strain. Also returns flags for if this is yielded and/or failed.
+vfloat CVXC_Material::GetModelStress(const vfloat StrainIn, bool* const pIsPastYielded, bool* const pIsPastFail, float voxelEmod) const //returns the stiffness and stress of the current material model at the given strain. Also returns flags for if this is yielded and/or failed.
 {
-	//asume linear case, neither yielded nor failed unless we set otherwise...
+	float true_Elastic_Mod = (voxelEmod > 0) ? voxelEmod : Elastic_Mod; // we need to use the evolvedStiffness for the stress computation, not material's ElasticMod
+
+	//assume linear case, neither yielded nor failed unless we set otherwise...
 	*pIsPastYielded = false;
 	*pIsPastFail = false;
-	vfloat CalcStress = Elastic_Mod*StrainIn;
+	vfloat CalcStress = true_Elastic_Mod*StrainIn;
 
 	switch (MatModel){
 	case MDL_LINEAR:
 		//we're all good!
 		return CalcStress;
 	case MDL_LINEAR_FAIL:
-		if (FailModel == FM_MAXSTRESS && StrainIn > Fail_Stress/Elastic_Mod){ //if past failure, we've yielded and failed at once...
+		if (FailModel == FM_MAXSTRESS && StrainIn > Fail_Stress/true_Elastic_Mod){ //if past failure, we've yielded and failed at once...
 			*pIsPastYielded = true;
 			*pIsPastFail = true;
 		}
@@ -1492,10 +1494,10 @@ vfloat CVXC_Material::GetModelStress(const vfloat StrainIn, bool* const pIsPastY
 		//still all linear...
 		return CalcStress;
 	case MDL_BILINEAR:
-		if (StrainIn > Yield_Stress/Elastic_Mod){ //if past the linear region...
+		if (StrainIn > Yield_Stress/true_Elastic_Mod){ //if past the linear region...
 			*pIsPastYielded = true;
-			CalcStress = Yield_Stress + Plastic_Mod*(StrainIn-Yield_Stress/Elastic_Mod);
-			if (FailModel == FM_MAXSTRESS && StrainIn > Fail_Stress/Elastic_Mod) *pIsPastFail = true; //if past fail, we've failed...
+			CalcStress = Yield_Stress + Plastic_Mod*(StrainIn-Yield_Stress/true_Elastic_Mod);
+			if (FailModel == FM_MAXSTRESS && StrainIn > Fail_Stress/true_Elastic_Mod) *pIsPastFail = true; //if past fail, we've failed...
 			else if (FailModel == FM_MAXSTRAIN && StrainIn > Fail_Strain) *pIsPastFail = true; 
 			return CalcStress;
 		}
@@ -1654,7 +1656,7 @@ bool CVXC_Structure::WriteXML(CXML_Rip* pXML, int Compression, std::string* RetM
 		case CP_BASE64: Compress = "BASE64"; break;
 		case CP_ZLIB: Compress = "ZLIB"; break;
 
-		default: Compress = "BASE64"; break;
+		default: Compress = "ASCII_READABLE"; break;
 	}
 
 	pXML->DownLevel("Structure");

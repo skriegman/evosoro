@@ -72,7 +72,7 @@ bool CVX_Bond::LinkVoxels(const int V1SIndIn, const int V2SIndIn)
 	if (!UpdateVoxelPtrs()){Vox1SInd = Vox2SInd = -1; return false;}
 
 	Vec3D<> OrigDist = pVox2->GetNominalPosition() - pVox1->GetNominalPosition(); //original distance (world coords)
-	HomogenousBond = (pVox1->GetMaterialIndex() == pVox2->GetMaterialIndex());
+	HomogenousBond = (pVox1->GetMaterialIndex() == pVox2->GetMaterialIndex() && pVox1->GetEMod() == pVox2->GetEMod());
 	LinearBond = (pVox1->IsLinear() && pVox2->IsLinear());
 
 	if (OrigDist.x == 0 && OrigDist.y == 0) ThisBondAxis = AXIS_Z;

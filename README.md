@@ -62,6 +62,7 @@ Encoding and optimization:
 >*Unshackling evolution: evolving soft robots with multiple materials and a powerful generative encoding.* 
 >In Proceedings of the 15th annual conference on Genetic and evolutionary computation (pp. 167-174). ACM.
 
+When using specific versions of the physics engine (as indicated by VOXELYZE_VERSION in the Python examples), please check the accompanying ReadMe.txt (within the relevant "_voxcad_*" folder) for relevant additional references to be cited.
 
 
 <!--

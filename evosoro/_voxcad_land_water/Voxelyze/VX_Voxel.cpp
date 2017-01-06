@@ -61,6 +61,7 @@ CVX_Voxel& CVX_Voxel::operator=(const CVX_Voxel& VIn)
 
 	MatIndex = VIn.MatIndex;
 	SetMaterial(VIn.MatIndex);
+	Vox_E = VIn.GetEMod(); // Make sure to preserve the current Vox_E, possibly different from the material one
 
 	ExternalForce = VIn.ExternalForce;
 	ExternalDisp = VIn.ExternalDisp;

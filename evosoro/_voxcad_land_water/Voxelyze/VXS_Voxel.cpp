@@ -233,8 +233,7 @@ void CVXS_Voxel::EulerStep()
 	}
 	if (TempFact < MIN_TEMP_FACTOR) TempFact = MIN_TEMP_FACTOR;
 	Scale = TempFact*NominalSize;
-
-	/* STIFFNESS PLASTICITY: SIMPLY ALTER Vox_E */
+	
 
 	//Recalculate secondary:
 	AngVel = AngMom * _inertiaInv;
@@ -617,5 +616,5 @@ vfloat CVXS_Voxel::GetMaxBondStress(void) const
 
 vfloat CVXS_Voxel::CalcVoxMatStress(const vfloat StrainIn, bool* const IsPastYielded, bool* const IsPastFail) const
 {
-		return _pMat->GetModelStress(StrainIn, IsPastYielded, IsPastFail);
+		return _pMat->GetModelStress(StrainIn, IsPastYielded, IsPastFail, Vox_E);
 }

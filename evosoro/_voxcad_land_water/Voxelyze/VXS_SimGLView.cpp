@@ -380,8 +380,8 @@ CColor CVXS_SimGLView::GetCurVoxColor(int SIndex, int Selected)
 		{
 			double maxE = pSim->pEnv->pObj->Structure.GetMaxElasticMod();
 			double minE = pSim->pEnv->pObj->Structure.GetMinElasticMod();
-			double normE = (pSim->VoxArray[SIndex].GetEMod() - minE ) / (maxE - minE);
-			return CColor(0.0f, normE, 0.0f, 1.0f); // 1.3f-normE
+			double normE = pSim->VoxArray[SIndex].GetEMod() / (2*(maxE - minE));
+			return GetJet(normE+0.5);//CColor(0.0f, normE+0.3f, 0.0f, 1.0f); // 1.3f-normE
 		}
 		default:
 			return CColor(1.0f,1.0f,1.0f, 1.0f);

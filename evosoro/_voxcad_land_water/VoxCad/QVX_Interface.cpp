@@ -354,8 +354,8 @@ void QVX_Sim::SimLoop(QString* pSimMessage)
 	bool PlotVis, StatusVis;
 
  	bool usingGUI = true;
-	double volumeStart = 0.0; //pSimView->VoxMesh.computeAndStoreRobotVolumeStart();
-	double qhullStart = 0.0; //pSimView->VoxMesh.computeAndStoreQHullStart(usingGUI);
+	double volumeStart = pSimView->VoxMesh.computeAndStoreRobotVolumeStart();
+	double qhullStart = pSimView->VoxMesh.computeAndStoreQHullStart(usingGUI);
 
 	while (true){ //do this step...
 		if (StopConditionMet()){InternalEnding = true; StatToCalc=CALCSTAT_ALL; UpdateStats(); RetMsg+="Simulation stop condition reached.\n";break;}//if stop condition met...
@@ -484,8 +484,8 @@ void QVX_Sim::SimLoop(QString* pSimMessage)
 		"\n" + PosLabel + " X:"+ QString::number(CurSelPos.x, 'g', 3)+"  Y:"+ QString::number(CurSelPos.y, 'g', 3)+"  Z:"+ QString::number(CurSelPos.z, 'g', 3)+ " mm" +
 		"\nCOM_Dist = "+ QString::number((SS.CurCM-IniCM).Length()*1000, 'g', 3)+" mm\n\n";
 
-	double qhullEnd = 0.0; //pSimView->VoxMesh.computeAndStoreQHullEnd(usingGUI);
-	double volumeEnd = 0.0; //pSimView->VoxMesh.computeAndStoreRobotVolumeEnd();
+	double qhullEnd = pSimView->VoxMesh.computeAndStoreQHullEnd(usingGUI);
+	double volumeEnd = pSimView->VoxMesh.computeAndStoreRobotVolumeEnd();
 
 	QString volumeInformation("Initial volume: " + QString::number(volumeStart, 'f', 8) + "  mm^3\n");
 	volumeInformation += "Initial chull volume: " + QString::number(qhullStart, 'f', 8) + "  mm^3\n";

@@ -100,7 +100,8 @@ public:
 
 	void ClearAll(void); //!< Clears all environment-specific information form the simulation.
 	void ResetSimulation(void); //!< Resets the environment to its initial imported state.
-
+	void SetVoxData(void);
+	
 	//Integration/simulation running
 	bool TimeStep(std::string* pRetMessage = NULL); //!< Advances the simulation one time step. Calcstats moved to StatToCalc member bit flag
 	vfloat CalcMaxDt(void); //!< Calculates the current maximum timestep based on the highest resonant frequency in the object.

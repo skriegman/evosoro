@@ -61,10 +61,10 @@ int main(int argc, char *argv[])
 	double hulVolumeStart, hulVolumeEnd, robotVolumeStart, robotVolumeEnd,sComplexityStart, sComplexityEnd;
 
 	DeformableMesh.initializeDeformableMesh(&Simulator); // Initialize internal mesh and link it to the simulation
-	/*hulVolumeStart = DeformableMesh.computeAndStoreQHullStart();
+	hulVolumeStart = DeformableMesh.computeAndStoreQHullStart();
 	robotVolumeStart = DeformableMesh.computeAndStoreRobotVolumeStart();
 	sComplexityStart = DeformableMesh.computeInitialShapeComplexity();
-	
+
 	if (print_scrn)
 	{
 		std::cout << "Robot mesh has " << DeformableMesh.getMeshVertNum() << " vertices and " << DeformableMesh.getMeshFacetsNum() << " facets" << std::endl
@@ -74,7 +74,7 @@ int main(int argc, char *argv[])
 
 		DeformableMesh.printAllMeshInfo();
 	}
-	*/
+
 
 	while (not Simulator.StopConditionMet())
 	{
@@ -100,7 +100,6 @@ int main(int argc, char *argv[])
 		Simulator.pEnv->UpdateCurTemp(Time);	//pass in the global time, and a pointer to the local object so its material temps can be modified (nac: pointer removed for debugging)	
 	}
 
-	/*
 	hulVolumeEnd = DeformableMesh.computeAndStoreQHullEnd();
 	robotVolumeEnd = DeformableMesh.computeAndStoreRobotVolumeEnd();
 	sComplexityEnd = DeformableMesh.computeFinalShapeComplexity();
@@ -113,7 +112,7 @@ int main(int argc, char *argv[])
 				  
 			DeformableMesh.printAllMeshInfo();
 	}	
-	*/
+
 	if (print_scrn) std::cout << "Ended at: " << Time << std::endl;
 	
 	Simulator.SaveResultFile(Simulator.FitnessFileName);

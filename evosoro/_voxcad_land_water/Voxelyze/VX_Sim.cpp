@@ -538,6 +538,7 @@ bool CVX_Sim::Import(CVX_Environment* pEnvIn, CMesh* pSurfMeshIn, std::string* R
 //	TmpVox.LinkToVXSim(this);
 //	VoxArray.push_back(TmpVox);
 
+	SetVoxData();
 
 	//Set up all permanent bonds
 	//Between adjacent voxels in the lattice
@@ -771,9 +772,55 @@ int CVX_Sim::CreateColBond(int SIndex1In, int SIndex2In) //!< Creates a new coll
 //	return true;
 //}
 
+void CVX_Sim::SetVoxData(void)
+{
+	for (int i=0; i<NumVox(); i++) 
+	{
+		VoxArray[i].TempAmplitude = pEnv->GetTempAmplitude();
+		VoxArray[i].TempPeriod = pEnv->GetTempPeriod();
+	}
+
+	if (pEnv->pObj->GetUsingPhaseOffset())
+	{ 
+		for (int i=0; i<NumVox(); i++) 
+		{
+			VoxArray[i].phaseOffset = pEnv->pObj->GetPhaseOffset(i); 
+		}
+	}
+	else
+	{
+		for (int i=0; i<NumVox(); i++) 
+		{
+			VoxArray[i].phaseOffset = 0.0; 
+		}
+
+	}
+
+	if (pEnv->pObj->GetEvolvingStiffness())
+	{ 
+		for (int i=0; i<NumVox(); i++) 
+		{
+			VoxArray[i].evolvedStiffness = pEnv->pObj->GetStiffness(i); 
+			// Here we override the stiffness of the voxel, previously taken from the material
+			VoxArray[i].SetEMod(pEnv->pObj->GetStiffness(i));
+		}
+	}
+	else
+	{
+		for (int i=0; i<NumVox(); i++) 
+		{
+			VoxArray[i].evolvedStiffness = 0.0; 
+
+		}
+
+	}
+	
+}
+
 
 void CVX_Sim::ResetSimulation(void)
 {
+	SetVoxData();
 	int iT = NumVox();
 	for (int i=0; i<iT; i++) VoxArray[i].ResetVoxel();
 
@@ -805,55 +852,6 @@ void CVX_Sim::ResetSimulation(void)
 	// floorIsLava.clear();
 
 	// std::cout << "nac: resetting simulation" << std::endl;
-
-	for (int i=0; i<NumVox(); i++) 
-	{
-		VoxArray[i].TempAmplitude = pEnv->GetTempAmplitude();
-		VoxArray[i].TempPeriod = pEnv->GetTempPeriod();
-	}
-
-	// std::cout << pEnv->pObj->GetPhaseOffset(i)
-	// sys.exit(0)
-	// try 
-	if (pEnv->pObj->GetUsingPhaseOffset())
-	{ 
-		// std::cout << "debug: using phase offset" << std::endl;
-		for (int i=0; i<NumVox(); i++) 
-		{
-			VoxArray[i].phaseOffset = pEnv->pObj->GetPhaseOffset(i); 
-		}
-	}
-	// catch (...) 
-	else
-	{
-		// std::cout << "debug: NOT using phase offset" << std::endl;
-		// std::cout << "unable to import phaseOffset.  setting all phaseOffsets to zero.";
-		for (int i=0; i<NumVox(); i++) 
-		{
-			VoxArray[i].phaseOffset = 0.0; 
-		}
-
-	}
-
-	if (pEnv->pObj->GetEvolvingStiffness())
-	{ 
-		for (int i=0; i<NumVox(); i++) 
-		{
-			VoxArray[i].evolvedStiffness = pEnv->pObj->GetStiffness(i); 
-			// Here we override the stiffness of the voxel, previously taken from the material
-			VoxArray[i].SetEMod(pEnv->pObj->GetStiffness(i));
-		}
-	}
-	else
-	{
-		for (int i=0; i<NumVox(); i++) 
-		{
-			VoxArray[i].evolvedStiffness = 0.0; 
-
-		}
-
-	}
-	
 	
 	ClearHistories();
 

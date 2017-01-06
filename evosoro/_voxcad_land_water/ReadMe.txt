@@ -21,3 +21,4 @@ http://qt.nokia.com/downloads/visual-studio-add-in
 qwt (a qt plotting plugin) is also needed.
 http://qwt.sourceforge.net/index.html
 (svn repository: https://qwt.svn.sourceforge.net/svnroot/qwt/trunk/qwt)
+

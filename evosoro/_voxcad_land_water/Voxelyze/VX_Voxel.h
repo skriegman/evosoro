@@ -57,7 +57,8 @@ public:
 	inline vfloat GetFirstMoment(void) const {return FirstMoment;}
 	inline vfloat GetInertia(void) const {return Inertia;}
 	inline vfloat GetEMod(void) const {return Vox_E;}
-	inline void SetEMod(vfloat Vox_E_in) {Vox_E = Vox_E_in;}
+	// FC: Important: always use SetEMod when altering Vox_E, it's important to recompute a bunch of quantities that depend on the elastic mod.
+	inline void SetEMod(vfloat Vox_E_in) {Vox_E = Vox_E_in;  _2xSqMxExS = 2*sqrt(Mass*Vox_E*NominalSize); _2xSqIxExSxSxS = 2*sqrt(Inertia*Vox_E*NominalSize*NominalSize*NominalSize); }
 	inline vfloat GetPoisson(void) const  {return Vox_mu;}
 	inline vfloat GetCTE(void) const  {return Vox_CTE;}
 	inline vfloat GetLinearStiffness(void) const {return 2*Vox_E*NominalSize;} //EA/L with L=NominalSize/2
