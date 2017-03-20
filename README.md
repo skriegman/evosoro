@@ -6,7 +6,7 @@ evosoro: soft robot simulator
 <img src="https://github.com/skriegman/img/blob/master/nick.png" height="135" width="135">
 </a>
 
-<a href=https://www.youtube.com/watch?v=HgWQ-gPIvt4>
+<a href=https://youtu.be/HgWQ-gPIvt4>
 <img src="https://github.com/skriegman/img/blob/master/electro.png" height="135" width="135">
 </a>
 
@@ -18,11 +18,11 @@ evosoro: soft robot simulator
 <img src="https://github.com/skriegman/img/blob/master/plant1.png" height="135" width="135">
 </a>
 
-<a href=https://www.youtube.com/watch?v=XqIUJcuOgmwl>
+<a href=https://youtu.be/XqIUJcuOgmw>
 <img src="https://github.com/skriegman/img/blob/master/teeth1.png" height="135" width="135">
 </a>
 
-<a href=https://www.youtube.com/watch?v=r_SL8VUt-wA>
+<a href=https://youtu.be/r_SL8VUt-wA>
 <img src="https://github.com/skriegman/img/blob/master/cage.png" height="135" width="135">
 </a>
 
