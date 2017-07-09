@@ -484,7 +484,7 @@ void CMesh::Draw(bool bModelhNormals, bool bShaded, bool bIngoreColors, bool bIg
 		// ---------------------------------------------------------------------------------------
 		// nac: draw shadow
 		// DISABLED
-/*		for (int i=0; i<(int)Facets.size(); i++) {
+		for (int i=0; i<(int)Facets.size(); i++) {
 			if (!bIgnoreNames) glLoadName(Facets[i].Name);
 			glBegin(GL_TRIANGLES);
 
@@ -500,12 +500,12 @@ void CMesh::Draw(bool bModelhNormals, bool bShaded, bool bIngoreColors, bool bIg
 					if (!bIngoreColors) glColor3d(0, 0, 0);
 				}
 
-				glVertex3d(CurVert.v.x + CurVert.DrawOffset.x, CurVert.v.y + CurVert.DrawOffset.y, 0.00001);
+				glVertex3d(CurVert.v.x + CurVert.DrawOffset.x, CurVert.v.y + CurVert.DrawOffset.y, 0.0001);
 
 			}
 			glEnd();
 
-		}*/
+		}
 		// -------------------------------------------------------------------------------
 
 		glLineWidth(1.0);

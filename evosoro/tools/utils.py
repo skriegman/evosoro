@@ -1,6 +1,6 @@
 import numpy as np
 import itertools
-import sys
+import re
 import scipy.ndimage as ndimage
 
 
@@ -16,11 +16,9 @@ def positive_sigmoid(x):
     return (1 + sigmoid(x)) * 0.5
 
 
-def rescaled_sigmoid(x, x_min=-1, x_max=1):
-    return (x_max - x_min) * sigmoid(x) + x_min
-
 def rescaled_positive_sigmoid(x, x_min=0, x_max=1):
     return (x_max - x_min) * positive_sigmoid(x) + x_min
+
 
 def inverted_sigmoid(x):
     return sigmoid(x) ** -1
@@ -62,6 +60,15 @@ def proportion_equal_to(x, keys):
     return np.mean(count_occurrences(x, keys))
 
 
+def normalize(x):
+    x -= np.min(x)
+    x /= np.max(x)
+    x = np.nan_to_num(x)
+    x *= 2
+    x -= 1
+    return x
+
+
 def xml_format(tag):
     """Ensures that tag is encapsulated inside angle brackets."""
     if tag[0] != "<":
@@ -71,19 +78,28 @@ def xml_format(tag):
     return tag
 
 
+def natural_sort(l, reverse):
+    convert = lambda text: int(text) if text.isdigit() else text.lower()
+    alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
+    return sorted(l, key=alphanum_key, reverse=reverse)
+
+
 def find_between(string, start, end):
     start = string.index(start) + len(start)
     end = string.index(end, start)
     return string[start:end]
 
 
-def normalize(x):
-    x -= np.min(x)
-    x /= np.max(x)
-    x = np.nan_to_num(x)
-    x *= 2
-    x -= 1
-    return x
+def replace_text_in_file(filename, replacements_dict):
+    lines = []
+    with open(filename) as infile:
+        for line in infile:
+            for original, target in replacements_dict.iteritems():
+                line = line.replace(original, target)
+            lines.append(line)
+    with open(filename, 'w') as outfile:
+        for line in lines:
+            outfile.write(line)
 
 
 def dominates(ind1, ind2, attribute_name, maximize):

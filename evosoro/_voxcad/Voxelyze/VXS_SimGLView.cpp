@@ -250,14 +250,14 @@ void CVXS_SimGLView::DrawFloor(void)
 
 	glLoadName (-1); //never want to pick floor
 
-	vfloat floorHeight = 0.00001;
+	vfloat floorHeight = 0.0;
 
 	glNormal3d(0.0, 0.0, 1.0);
 	for (int i=-20; i <=30; i++){
 		for (int j=-40; j <=60; j++){
 			
-			// glColor4d(0.6, 0.7+0.2*((int)(1000*sin((float)(i+110)*(j+106)*(j+302)))%10)/10.0, 0.6, 1.0);
-			glColor4d(1.0, 1.0, 1.0, 1.0);
+			glColor4d(0.6, 0.7+0.2*((int)(1000*sin((float)(i+110)*(j+106)*(j+302)))%10)/10.0, 0.6, 1.0);
+			// glColor4d(1.0, 1.0, 1.0, 1.0);
 
 			glBegin(GL_TRIANGLE_FAN);
 			glVertex3d(i*sX, j*sY, floorHeight);
@@ -270,8 +270,8 @@ void CVXS_SimGLView::DrawFloor(void)
 			glVertex3d(i*sX+0.5*Size, j*sY, floorHeight);
 			glEnd();
 
-			// glColor4d(0.6, 0.7+0.2*((int)(1000*sin((float)(i+100)*(j+103)*(j+369)))%10)/10.0, 0.6, 1.0);
-			glColor4d(1.0, 1.0, 1.0, 1.0);
+			glColor4d(0.6, 0.7+0.2*((int)(1000*sin((float)(i+100)*(j+103)*(j+369)))%10)/10.0, 0.6, 1.0);
+			// glColor4d(1.0, 1.0, 1.0, 1.0);
 
 			glBegin(GL_TRIANGLE_FAN);
 			glVertex3d(i*sX+.75*Size, j*sY+0.433*Size, floorHeight);
@@ -401,18 +401,32 @@ CColor CVXS_SimGLView::GetCurVoxColor(int SIndex, int Selected)
 
             if (pSim->pEnv->pObj->GetUsingInitialVoxelSize() || pSim->pEnv->pObj->GetUsingFinalVoxelSize())  // color difference from nominal
             {
+                int ThisMat = pSim->VoxArray[SIndex].GetMaterialIndex();
+                if (ThisMat == 5){  // obstacle
+                    return CColor(1.0f, 0.0f, 1.0f, 1.0f);
+                }
+                if (ThisMat == 7){  // food
+                    vfloat PushDist = pow(pow(pSim->SS.CurNeedlePos.x-pSim->InitialNeedlePosition.x,2)+pow(pSim->SS.CurNeedlePos.y-pSim->InitialNeedlePosition.y,2),0.5)/pSim->LocalVXC.GetLatticeDim();
+                    return GetJet(PushDist/10.0);
+                }
+
                 double maxSize = (1 + pSim->pEnv->getGrowthAmplitude())*pSim->VoxArray[SIndex].GetNominalSize();
 				double minSize = (1 - pSim->pEnv->getGrowthAmplitude())*pSim->VoxArray[SIndex].GetNominalSize();
 
-				double finalSize = pSim->VoxArray[SIndex].finalVoxelSize;
-				if (finalSize < minSize) finalSize = minSize;
+				// double finalSize = pSim->VoxArray[SIndex].finalVoxelSize;
+				// if (finalSize < minSize) finalSize = minSize;
 
-				double initialSize = pSim->VoxArray[SIndex].initialVoxelSize;
-				if (initialSize < minSize) initialSize = minSize;
+				// double initialSize = pSim->VoxArray[SIndex].initialVoxelSize;
+				// if (initialSize < minSize) initialSize = minSize;
 
-				double normSize = (finalSize - initialSize) / (maxSize - minSize);
-				return GetJet(normSize + 0.5);
+				// double normSize = (finalSize - initialSize) / (maxSize - minSize);
 
+				double remainingGrowth = pSim->VoxArray[SIndex].RemainingGrowth;
+				double normColor = remainingGrowth / (maxSize - minSize);
+				return GetJet(normColor + 0.5); //
+                // double CurPhaseChange = pSim->VoxArray[SIndex].CurPhaseChange;
+                // double normAlpha = 1-(CurPhaseChange+1)*0.5;
+                // return GetJet(normAlpha);
             }
 
 

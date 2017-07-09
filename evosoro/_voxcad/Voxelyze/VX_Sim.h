@@ -44,12 +44,43 @@ See <http://www.opensource.org/licenses/lgpl-3.0.html> for license details.
 //#define INPUT_VOX_INDEX -1
 
 struct SimState { //Information about current simulation state:
-	void Clear() {CurCM = TotalObjDisp = EndOfLifetimeCM = RegimeStartCM =  Vec3D<>(0,0,0); NormObjDisp = MaxVoxDisp = MaxVoxVel = MaxVoxKinE = MaxBondStrain = MaxBondStress = MaxBondStrainE = TotalObjKineticE = TotalObjStrainE = MaxPressure = MinPressure = 0.0;}
+	void Clear() {CurCM = CurNeedlePos = TotalObjDisp = Vec3D<>(0,0,0); CurNumTouchingFloor = CurNumNonFeetTouchingFloor = CurFeetAnteriorY = CurFeetPosteriorY = CurAnteriorDist = CurPosteriorDist = CurAnteriorY = CurPosteriorY = EndOfLifetimePosteriorY = NormObjDisp = MaxVoxDisp = MaxVoxVel = MaxVoxKinE = MaxBondStrain = MaxBondStress = MaxBondStrainE = TotalObjKineticE = TotalObjStrainE = MaxPressure = MinPressure = 0.0;}
 	Vec3D<> CurCM;
-	Vec3D<> EndOfLifetimeCM;
-	Vec3D<> RegimeStartCM;
+
+	Vec3D<> CurNeedlePos;
+
+	vfloat CurAnteriorDist;
+	vfloat CurPosteriorDist;
+
+	vfloat CurAnteriorY;
+	vfloat CurPosteriorY;
+
+	vfloat EndOfLifetimePosteriorY;
+
+	vfloat CurFeetAnteriorY;
+	vfloat CurFeetPosteriorY;
+
+	vfloat CurNumNonFeetTouchingFloor;
+	vfloat CurNumTouchingFloor;
+
 	std::vector< Vec3D<> > CMTrace;
 	std::vector< vfloat > CMTraceTime;
+	std::vector< vfloat > VolTrace;
+	std::vector< vfloat > VolTraceTime;
+
+	std::vector< Vec3D<> > CMTraceWhileFrozen;
+	std::vector< vfloat > CMTraceTimeWhileFrozen;
+	std::vector< vfloat > VolTraceWhileFrozen;
+	std::vector< vfloat > VolTraceTimeWhileFrozen;
+
+	std::vector< Vec3D<> > CMTraceAfterLife;
+	std::vector< vfloat > CMTraceTimeAfterLife;
+	std::vector< vfloat > VolTraceAfterLife;
+	std::vector< vfloat > VolTraceTimeAfterLife;
+
+	std::vector< vfloat > WindowTrace;
+	std::vector< vfloat > WindowTraceTime;
+
 	Vec3D<> TotalObjDisp; //a vector total of the magnitude of displacements
 	vfloat NormObjDisp; //reduced to a scalar (magnitude) 
 	vfloat MaxVoxDisp, MaxVoxVel, MaxVoxKinE, MaxBondStrain, MaxBondStress, MaxBondStrainE, MaxPressure, MinPressure;
@@ -131,6 +162,10 @@ public:
 
 	bool CmInitialized; //nac
 
+	bool NeedleInitialized;
+
+	bool DevelopmentFrozen;
+
 
 	//Simulator features:
 
@@ -178,9 +213,13 @@ public:
 	void SetStopConditionType(StopCondition StopConditionTypeIn = SC_NONE) {StopConditionType = StopConditionTypeIn;}
 	void SetStopConditionValue(vfloat StopConditionValueIn = 0.0) {StopConditionValue = StopConditionValueIn;} 
 	void SetInitCmTime(vfloat _InitCmTime= 0.0) {InitCmTime = _InitCmTime;}
+	void SetAfterlifeTime(vfloat _AfterlifeTime= 0.0) {AfterlifeTime = _AfterlifeTime;}
+	void SetMidLifeFreezeTime(vfloat _MidLifeFreezeTime= 0.0) {MidLifeFreezeTime = _MidLifeFreezeTime;}
 	StopCondition GetStopConditionType(void){return StopConditionType;}	
 	vfloat GetStopConditionValue(void){return StopConditionValue;}
 	vfloat GetInitCmTime(void){return InitCmTime;}
+	vfloat GetAfterlifeTime(void){return AfterlifeTime;}
+	vfloat GetMidLifeFreezeTime(void){return MidLifeFreezeTime;}
 	bool StopConditionMet(void); //have we met the stop condition yet?
 
 	//Information about current state:
@@ -190,7 +229,13 @@ public:
 	Vec3D<> GetCM(void);
 	Vec3D<> IniCM; //initial center of mass
 
+	Vec3D<> InitialNeedlePosition;
+	Vec3D<> GetNeedlePosition();
+
+	double GetWindowDist();
+
 	int GetNumTouchingFloor();
+	int GetNumNonFeetTouchingFloor();
 
 	Vec3D<> GetSumForce(CVX_FRegion* pRegion); //returns total force on a region
 	vfloat GetSumForceDir(CVX_FRegion* pRegion); //returns total force on a region in the direction of its displacement
@@ -253,7 +298,10 @@ public:
 	inline void SetMaxKI(double value){ MaxKI = value; }
 	inline double GetMaxKI(void){ return MaxKI; }	
 	inline void SetMaxANTIWINDUP(double value){ MaxANTIWINDUP = value; }
-	inline double GetMaxANTIWINDUP(void){ return MaxANTIWINDUP; }	
+	inline double GetMaxANTIWINDUP(void){ return MaxANTIWINDUP; }
+
+	inline void SetParentLifetime(double value){ ParentLifetime = value; }
+	inline double GetParentLifetime(void){ return ParentLifetime; }
 
 
 	inline double getMaxStiffnessChange(){ return MAX_STIFFNESS_VARIATION_STEP; }
@@ -273,6 +321,18 @@ public:
 	double KP, KI, ANTIWINDUP, MOTION_FLOOR_THR;
 
 	double getAverageScaleVariation();
+	double getTotalVolume();
+
+	double getAnteriorDist();
+	double getPosteriorDist();
+
+    double getAnteriorY();
+	double getPosteriorY();
+
+    double getFeetAnteriorY();
+	double getFeetPosteriorY();
+
+	bool FellOver = false;
 
 protected:
 	double errorThreshold;
@@ -308,6 +368,8 @@ protected:
 	double MaxKI;
 	double MaxANTIWINDUP;
 
+	double ParentLifetime;
+
 	bool Initalized; //!< Flag to denote if simulation is runnable. True if there is an environement successfully loaded, false otherwise.
 
 	//Integration
@@ -318,6 +380,8 @@ protected:
 
 	vfloat StopConditionValue;
 	vfloat InitCmTime;
+	vfloat AfterlifeTime;
+	vfloat MidLifeFreezeTime;
 
 	void EnableEquilibriumMode(bool Enabled);
 

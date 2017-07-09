@@ -176,7 +176,7 @@ if __name__ == "__main__":
     #                     save_vxa_every=SAVE_POPULATION_EVERY, save_lineages=SAVE_LINEAGES)
 
     # Here is how to use the checkpointing mechanism
-    if not os.path.isfile("./" + RUN_DIR + "/checkpoint.pickle"):
+    if not os.path.isfile("./" + RUN_DIR + "/pickledPops/Gen_0.pickle"):
         # start optimization
         my_optimization.run(max_hours_runtime=MAX_TIME, max_gens=MAX_GENS, num_random_individuals=NUM_RANDOM_INDS,
                             directory=RUN_DIR, name=RUN_NAME, max_eval_time=MAX_EVAL_TIME,

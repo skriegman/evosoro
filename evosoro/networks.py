@@ -22,6 +22,10 @@ class Network(object):
     def __init__(self, output_node_names):
         self.output_node_names = output_node_names
         self.graph = OrderedGraph()  # preserving order is necessary for checkpointing
+        self.freeze = False
+        self.allow_neutral_mutations = False
+        self.num_consecutive_mutations = 1
+        self.direct_encoding = False
 
     def __deepcopy__(self, memo):
         """Override deepcopy to apply to class level attributes"""
@@ -33,7 +37,7 @@ class Network(object):
     def set_input_node_states(self, *args, **kwargs):
         raise NotImplementedError
 
-    def mutate(self, *ags, **kwargs):
+    def mutate(self, *args, **kwargs):
         raise NotImplementedError
 
 
@@ -293,3 +297,75 @@ class CPPN(Network):
         if (node1, node2) in nx.edges(self.graph):
             return False
         return True
+
+
+class DirectEncoding(Network):
+    def __init__(self, output_node_name, orig_size_xyz, lower_bound=-1, upper_bound=1, func=None, symmetric=True,
+                 p=None, scale=None, start_val=None, mutate_start_val=False):
+
+        Network.__init__(self, [output_node_name])
+
+        self.direct_encoding = True
+        self.allow_neutral_mutations = True
+        self.size = orig_size_xyz
+        self.lower_bound = lower_bound
+        self.upper_bound = upper_bound
+        if p is None:
+            p = 1/np.product(self.size, dtype='f')
+        self.p = p
+        self.scale = scale
+        self.func = func
+        self.symmetric = symmetric
+        self.start_value = start_val
+
+        if start_val is None:
+            self.values = np.random.uniform(lower_bound, upper_bound, size=orig_size_xyz)
+        else:
+            self.values = np.ones(shape=orig_size_xyz) * start_val
+            if mutate_start_val:
+                self.mutate()
+
+        self.enforce_symmetry()
+
+        if self.func is not None:
+            self.values = self.func(self.values)
+
+        self.values = np.clip(self.values, self.lower_bound, self.upper_bound)
+
+    # @property
+    # def values(self):
+    #     return self._values
+    #
+    # @values.setter
+    # def values(self, values):
+    #     if self.func is None:
+    #         self._values = values
+    #     else:
+    #         self._values = self.func(values)
+
+    def set_input_node_states(self, *args, **kwargs):
+        pass
+
+    def mutate(self, rate=None):
+        if rate is None:
+            rate = self.p
+
+        scale = self.scale
+        if self.scale is None:
+            scale = np.clip(self.values**0.5, self.start_value**0.5, self.upper_bound)
+            # right not the only time this occurs is for meta mutations
+            # assuming values are less than 1, ow this should be 1/val
+
+        selection = np.random.random(self.size) < rate
+        change = np.random.normal(scale=scale, size=self.size)
+        self.values[selection] += change[selection]
+        self.values = np.clip(self.values, self.lower_bound, self.upper_bound)
+        self.enforce_symmetry()
+        if self.func is not None:
+            self.values = self.func(self.values)
+        return "gaussian", self.scale
+
+    def enforce_symmetry(self):
+        if self.symmetric:
+            reversed_array = self.values[::-1, :, :]
+            self.values[:int(self.size[0]/2.0), :, :] = reversed_array[:int(self.size[0]/2.0), :, :]

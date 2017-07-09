@@ -191,9 +191,7 @@ def evaluate_all(sim, env, pop, print_log, save_vxa_every, run_directory, run_na
 
                             if save_lineages:
                                 sub.call("cp " + run_directory + "/voxelyzeFiles/" + run_name + "--id_%05i.vxa" %
-                                         ind.id + " " + run_directory + "/lineages/" +
-                                         run_name + "--Gen_%04i--fit_%.08f--id_%05i.vxa" %
-                                         (pop.gen, ind.fitness, ind.id), shell=True)
+                                         ind.id + " " + run_directory + "/ancestors/", shell=True)
 
                             if pop.gen % save_vxa_every == 0 and save_vxa_every > 0:
                                 sub.call("mv " + run_directory + "/voxelyzeFiles/" + run_name + "--id_%05i.vxa" %
@@ -213,9 +211,8 @@ def evaluate_all(sim, env, pop, print_log, save_vxa_every, run_directory, run_na
             time.sleep(0.5)
 
     if not all_done:
-        print_log.message("WARNING: Couldn't get a fitness value in time for some individuals, "
-                          "probably there's something wrong with them (e.g. sim diverged). "
-                          "The min fitness is being assigned to those")
+        print_log.message("WARNING: Couldn't get a fitness value in time for some individuals. "
+                          "The min fitness was assigned for these individuals")
 
     print_log.message("\nAll Voxelyze evals finished in {} seconds".format(time.time() - start_time))
     print_log.message("num_evaluated_this_gen: {0}".format(num_evaluated_this_gen))

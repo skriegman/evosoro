@@ -185,6 +185,22 @@ public:
 	inline void InitPhaseOffsetArray(int Size) {pPhaseOffsets = new double[Size];}
 	inline bool GetUsingPhaseOffset(void) {return usingPhaseOffset;}
 
+	inline void SetFinalPhaseOffset(int Index, double Value) {pFinalPhaseOffsets[Index] = Value;} // nac: sets the material index here
+	inline double GetFinalPhaseOffset(int Index) const {return pFinalPhaseOffsets[Index];}
+	inline void InitFinalPhaseOffsetArray(int Size) {pFinalPhaseOffsets = new double[Size];}
+	inline bool GetUsingFinalPhaseOffset(void) {return usingFinalPhaseOffset;}
+
+	// damping phase functions
+	inline void SetTempAmpDamp(int Index, double Value) {pTempAmpDamp[Index] = Value;}
+	inline double GetTempAmpDamp(int Index) const {return pTempAmpDamp[Index];}
+	inline void InitTempAmpDampArray(int Size) {pTempAmpDamp = new double[Size];}
+	inline bool GetUsingTempAmpDamp(void) {return usingTempAmpDamp;}
+
+	inline void SetFinalTempAmpDamp(int Index, double Value) {pFinalTempAmpDamp[Index] = Value;}
+	inline double GetFinalTempAmpDamp(int Index) const {return pFinalTempAmpDamp[Index];}
+	inline void InitFinalTempAmpDampArray(int Size) {pFinalTempAmpDamp = new double[Size];}
+	inline bool GetUsingFinalTempAmpDamp(void) {return usingFinalTempAmpDamp;}
+
 	// EvolvedVoxelSize functions
 	inline void SetInitialVoxelSize(int Index, double Value) {pInitialVoxelSize[Index] = Value;}
 	inline double GetInitialVoxelSize(int Index) const {return pInitialVoxelSize[Index];}
@@ -249,6 +265,15 @@ protected:
 
 	bool usingPhaseOffset; 
 	double* pPhaseOffsets;
+
+    bool usingFinalPhaseOffset;
+	double* pFinalPhaseOffsets;
+
+	bool usingTempAmpDamp;
+    double* pTempAmpDamp;
+
+    bool usingFinalTempAmpDamp;
+    double* pFinalTempAmpDamp;
 
 	bool usingInitialVoxelSize;
 	double* pInitialVoxelSize;
@@ -412,6 +437,22 @@ public:
 	inline double GetPhaseOffset(int Index) const {return Structure.GetPhaseOffset(Index);}
 	inline void InitPhaseOffsetArray(int Size) {Structure.InitPhaseOffsetArray(Size);}
 	inline bool GetUsingPhaseOffset(void) {return Structure.GetUsingPhaseOffset();}
+
+	inline void SetFinalPhaseOffset(int Index, double Value) {Structure.SetFinalPhaseOffset(Index,Value);}
+	inline double GetFinalPhaseOffset(int Index) const {return Structure.GetFinalPhaseOffset(Index);}
+	inline void InitFinalPhaseOffsetArray(int Size) {Structure.InitFinalPhaseOffsetArray(Size);}
+	inline bool GetUsingFinalPhaseOffset(void) {return Structure.GetUsingFinalPhaseOffset();}
+
+	// damping actuation functions
+    inline void SetTempAmpDamp(int Index, double Value) { Structure.SetTempAmpDamp(Index, Value);}
+	inline double GetTempAmpDamp(int Index) const {return Structure.GetTempAmpDamp(Index);}
+	inline void InitTempAmpDampArray(int Size) { Structure.InitTempAmpDampArray(Size); }
+	inline bool GetUsingTempAmpDamp(void) {return Structure.GetUsingTempAmpDamp(); }
+
+	inline void SetFinalTempAmpDamp(int Index, double Value) { Structure.SetFinalTempAmpDamp(Index, Value);}
+	inline double GetFinalTempAmpDamp(int Index) const {return Structure.GetFinalTempAmpDamp(Index);}
+	inline void InitFinalTempAmpDampArray(int Size) { Structure.InitFinalTempAmpDampArray(Size); }
+	inline bool GetUsingFinalTempAmpDamp(void) {return Structure.GetUsingFinalTempAmpDamp(); }
 
 	// EvolvedVoxelSize functions
 	inline void SetInitialVoxelSize(int Index, double Value) { Structure.SetInitialVoxelSize(Index, Value);}

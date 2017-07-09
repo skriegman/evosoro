@@ -197,9 +197,10 @@ public:
 	int GetNumHiddenLayers() {return NumHiddenLayers;} //!< Returns true if neural net is currently enabled (nac).
 	float GetOutputSmoothing(void) {return outputSmoothing;} // nac: limits slope out output neuron to that of the average rate of change for "x" cycles per time period
 
-	std::vector<VX_Source*> GetEnvironmentalSources(){ return environmentalSources; } // FC Returns current suources in the environment TODO_FC may be better to avoid copying it every time
+	std::vector<VX_Source*> GetEnvironmentalSources(){ return environmentalSources; } // FC Returns current sources in the environment TODO_FC may be better to avoid copying it every time
 	double getGrowthAmplitude(){ return growthAmplitude; } // FC Returns the growth amplitude (relative to the nominal voxel size)
 	double getGrowthModel(){ return growthModel; } // FC which model (0,1,..) to use for the growth process (more than one were tested)
+	double getMinGrowthTime(){ return minGrowthTime; } // limits the fastest transitions which helps avoid shrinking too fast to the minimum size
 	bool getSourcesPresent(){ return sourcesPresent; }
 	bool isFloorLimited(){ return limitedFloor; }
 	double getFloorRadius(){ return floorRadius; }
@@ -209,7 +210,23 @@ public:
 	void resetSourcesStats() { for(int kk = 0; kk < environmentalSources.size(); kk++) environmentalSources[kk]->resetSourceStats(); }
 	// bool getUsingPhaseOffset(void) {return getUsingPhaseOffset;}
 
+    bool getUsingNormDistByVol() { return NormDistByVol; }
+    bool getUsingSaveTraces() { return SaveTraces;}
 	vfloat getTimeBetweenTraces() { return TimeBetweenTraces; }
+	bool getUsingStickyFloor() { return StickyFloor; }
+
+	bool isFallingProhibited() { return FallingProhibited; }
+	bool isOnsetRelative() { return OnsetRelative; }
+	bool isTerminationRelative() { return TerminationRelative; }
+
+	double GetNormalizationExponent() {return NormalizationExponent;}
+	double GetBallisticSlowdownFact() {return BallisticSlowdownFact;}
+	double GetMaxSlowdownPermitted() {return MaxSlowdownPermitted;}
+
+
+	int GetNumTimeStepsInWindow() {return NumTimeStepsInWindow;}
+
+	bool GetUsingNeedleInHaystack() {return NeedleInHaystack;}
 
 #ifdef USE_OPEN_GL
 	void DrawBCs(int Selected); //draws the current boundary conditions
@@ -243,8 +260,24 @@ private:
 	std::vector<VX_Source*> environmentalSources; // vector containing all defined environmental sources
 	double growthAmplitude;
 	double growthModel;
+	double minGrowthTime;
 
+    bool NormDistByVol;
+    bool SaveTraces;
 	vfloat TimeBetweenTraces;
+	bool StickyFloor;
+
+	bool FallingProhibited;
+	bool OnsetRelative;
+	bool TerminationRelative;
+
+	double NormalizationExponent;
+	double BallisticSlowdownFact;
+	double MaxSlowdownPermitted;
+
+	int NumTimeStepsInWindow;
+
+	bool NeedleInHaystack;
 
 #ifdef USE_DEPRECATED
 public:

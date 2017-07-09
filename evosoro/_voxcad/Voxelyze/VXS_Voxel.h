@@ -90,10 +90,18 @@ public:
 	bool oldInRing;
 
 	float phaseOffset;
+	float finalPhaseOffset;
+	float TempAmpDamp;
+	float finalTempAmpDamp;
 	float growthTime;
 	float startGrowthTime;
 	float finalVoxelSize;
+	float OriginalFinalVoxelSize;
 	float initialVoxelSize;
+	float RemainingGrowth;
+	float CurPhaseChange;
+	float onsetBound;
+	float terminationBound;
 	float evolvedStiffness;
 	float stiffnessPlasticityRate;
 	float KP;
@@ -153,11 +161,14 @@ private:
 	Vec3D<> CalcGndDampEffect(); //damps everything to ground as quick as possible...
 
 	vfloat lastTempFact;
+	vfloat lastScale;
 	vfloat TempFact;
 	std::vector<VX_Source*> environmentalSources;
 	double maxNormDistanceFromSource = 0.0;
 	bool firstStep = 1;
 	double currentStimulus;
+
+	double SuggestedFinalVoxelSize;
 
 	Vec3D<double> initialVoxPointingVector;
 	Vec3D<double> voxPointingVector;

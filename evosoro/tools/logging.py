@@ -4,6 +4,10 @@ import sys
 import networkx as nx
 import subprocess as sub
 import numpy as np
+from glob import glob
+
+from evosoro.tools.utils import find_between
+
 
 # TODO: double tabs to csv?
 # TODO: save networks and pareto front functions are non operational
@@ -124,8 +128,12 @@ def record_individuals_data(pop, path, num_inds_to_save=None, print_to_terminal=
             if details["logging_stats"] is not None:
                 for network, parent_network in zip(ind.genotype, ind.parent_genotype):
                     if name in network.output_node_names:
-                        state = network.graph.node[name]["state"]
-                        parent_state = parent_network.graph.node[name]["state"]
+                        if not network.direct_encoding:
+                            state = network.graph.node[name]["state"]
+                            parent_state = parent_network.graph.node[name]["state"]
+                        else:
+                            state = network.values
+                            parent_state = parent_network.values
                         diff = state - parent_state
                         any_changes = np.any(state != parent_state)
                         objectives_string += "{}\t\t".format(any_changes)
@@ -185,6 +193,8 @@ def initialize_folders(population, run_directory, run_name, save_networks, save_
     sub.call("mkdir " + run_directory + "/bestSoFar/paretoFronts 2> /dev/null", shell=True)
     sub.call("mkdir " + run_directory + "/bestSoFar/fitOnly 2>/dev/null", shell=True)
 
+    sub.call("mkdir " + run_directory + "/pickledPops 2> /dev/null", shell=True)
+
     champ_file = run_directory + "/bestSoFar/bestOfGen.txt"
     make_header(population, champ_file)
 
@@ -197,7 +207,7 @@ def initialize_folders(population, run_directory, run_name, save_networks, save_
         sub.call("rm -rf " + run_directory + "/network_gml/* 2>/dev/null", shell=True)
 
     if save_lineages:
-        sub.call("mkdir " + run_directory + "/lineages 2> /dev/null", shell=True)
+        sub.call("mkdir " + run_directory + "/ancestors 2> /dev/null", shell=True)
 
 
 def make_gen_directories(population, run_directory, save_vxa_every, save_networks):
@@ -216,12 +226,16 @@ def make_gen_directories(population, run_directory, save_vxa_every, save_network
 
 
 def write_gen_stats(population, run_directory, run_name, save_vxa_every, save_pareto, save_networks,
-                    save_all_individual_data=True, num_inds_to_save=None):
+                    save_all_individual_data=True, num_inds_to_save=None, save_lineages=False):
 
     write_champ_file(population, run_directory)
 
     if save_all_individual_data:
         write_gen_individuals_data(population, run_directory, num_inds_to_save)
+
+    if save_lineages:  # must be performed every generation
+        # each vxa is saved during evaluation in the ancestors folder
+        remove_old_lineages(population, run_directory)
 
     if population.gen % save_vxa_every == 0 and save_vxa_every > 0 and save_networks:
         write_networks(population, run_directory)
@@ -241,6 +255,22 @@ def write_gen_individuals_data(population, run_directory, num_inds_to_save):
     gen_file = run_directory + "/allIndividualsData/Gen_%04i.txt" % population.gen
     make_header(population, gen_file)
     record_individuals_data(population, gen_file, num_inds_to_save, print_to_terminal=True)
+
+
+def remove_old_lineages(population, run_directory):
+    population.update_lineages()
+    print " Length of best lineage: {}".format(len(population.lineage_dict[population[0].id]))
+
+    ancestors_ids = [ind.id for ind in population]  # include current generation
+    for child, lineage in population.lineage_dict.items():
+        for parent in lineage:
+            if parent not in ancestors_ids:
+                ancestors_ids += [parent]
+
+    for vxa in glob(run_directory + "/ancestors/*"):
+        this_id = int(find_between(vxa, "--id_", ".vxa"))
+        if this_id not in ancestors_ids:
+            sub.call("rm " + vxa, shell=True)
 
 
 def write_pareto_front(population, run_directory, run_name):

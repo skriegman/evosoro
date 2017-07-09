@@ -44,9 +44,21 @@ class Genotype(object):
         new.__dict__.update(deepcopy(self.__dict__, memo))
         return new
 
-    def add_network(self, network):
-        """Append a new network to this list of networks."""
+    def add_network(self, network, freeze=False, num_consecutive_mutations=1):
+        """Append a new network to this list of networks.
+
+        Parameters
+        ----------
+        freeze : bool
+            This indicator is used to prevent mutations to a network while freeze == True
+
+        num_consecutive_mutations : int
+            Uses this many (random) steps per mutation.
+
+        """
         assert isinstance(network, Network)
+        network.freeze = freeze
+        network.num_consecutive_mutations = num_consecutive_mutations
         self.networks += [network]
         self.all_networks_outputs.extend(network.output_node_names)
 
@@ -54,41 +66,30 @@ class Genotype(object):
         """Calculate the genome networks outputs, the physical properties of each voxel for simulation"""
 
         for network in self:
+            if not network.direct_encoding:
+                for name in network.graph.nodes():
+                    network.graph.node[name]["evaluated"] = False  # flag all nodes as unevaluated
 
-            for name in network.graph.nodes():
-                network.graph.node[name]["evaluated"] = False  # flag all nodes as unevaluated
+                network.set_input_node_states(self.orig_size_xyz)  # reset the inputs
 
-            network.set_input_node_states(self.orig_size_xyz)  # reset the inputs
-
-            for name in network.output_node_names:
-                network.graph.node[name]["state"] = np.zeros(self.orig_size_xyz)  # clear old outputs
-                network.graph.node[name]["state"] = self.calc_node_state(network, name)  # calculate new outputs
+                for name in network.output_node_names:
+                    network.graph.node[name]["state"] = np.zeros(self.orig_size_xyz)  # clear old outputs
+                    network.graph.node[name]["state"] = self.calc_node_state(network, name)  # calculate new outputs
 
         for network in self:
             for name in network.output_node_names:
                 if name in self.to_phenotype_mapping:
-                    self.to_phenotype_mapping[name]["state"] = network.graph.node[name]["state"]
+                    if not network.direct_encoding:
+                        self.to_phenotype_mapping[name]["state"] = network.graph.node[name]["state"]
+                    else:
+                        self.to_phenotype_mapping[name]["state"] = network.values
 
         for name, details in self.to_phenotype_mapping.items():
-            # details["old_state"] = copy.deepcopy(details["state"])
-            # SAM: moved this to mutation.py prior to mutation attempts loop
             if name not in self.all_networks_outputs:
                 details["state"] = np.ones(self.orig_size_xyz, dtype=details["output_type"]) * -999
                 if details["dependency_order"] is not None:
                     for dependency_name in details["dependency_order"]:
                         self.to_phenotype_mapping.dependencies[dependency_name]["state"] = None
-
-        # create material matrix
-        # for name, details in self.to_phenotype_mapping.items():
-        #     details["old_state"] = copy.deepcopy(details["state"])
-        #     for network in self:
-        #         if name in network.output_node_names:
-        #             details["state"] = network.graph.node[name]["state"]
-        #         else:
-        #             details["state"] = np.ones(self.orig_size_xyz, dtype=details["output_type"]) * -999
-        #             if details["dependency_order"] is not None:
-        #                 for dependency_name in details["dependency_order"]:
-        #                     self.to_phenotype_mapping.dependencies[dependency_name]["state"] = None
 
         for name, details in self.to_phenotype_mapping.items():
             if details["dependency_order"] is not None:
@@ -118,6 +119,8 @@ class Genotype(object):
 
 class GenotypeToPhenotypeMap(object):
     """A mapping of the relationship from genotype (networks) to phenotype (VoxCad simulation)."""
+
+    # TODO: generalize dependencies from boolean to any operation (e.g. to set an env param from multiple outputs)
 
     def __init__(self):
         self.mapping = dict()
@@ -204,7 +207,10 @@ class GenotypeToPhenotypeMap(object):
         if (logging_stats is not None) and not isinstance(logging_stats, list):
             logging_stats = [logging_stats]
 
-        self.mapping[name] = {"tag": xml_format(tag),
+        if tag is not None:
+            tag = xml_format(tag)
+
+        self.mapping[name] = {"tag": tag,
                               "func": func,
                               "dependency_order": dependency_order,
                               "state": None,
@@ -286,7 +292,9 @@ class Phenotype(object):
         """
         for network in self.genotype:
             for output_node_name in network.output_node_names:
-                if np.isnan(network.graph.node[output_node_name]["state"]).any():
+                if not network.direct_encoding and np.isnan(network.graph.node[output_node_name]["state"]).any():
+                    return False
+                elif network.direct_encoding and np.isnan(network.values).any():
                     return False
         return True
 
@@ -373,6 +381,7 @@ class Population(object):
         self.objective_dict = objective_dict
         self.best_fit_so_far = objective_dict[0]["worst_value"]
         self.individuals = []
+        self.lineage_dict = {}
         self.max_id = 0
         self.non_dominated_size = 0
 
@@ -450,6 +459,22 @@ class Population(object):
             ind.age += 1
             ind.variation_type = "survived"
 
+    def update_lineages(self):
+        """Tracks ancestors of the current population."""
+        for ind in self:
+            if ind.id not in self.lineage_dict:
+                if ind.parent_id > -1:
+                    # parent already in dictionary
+                    self.lineage_dict[ind.id] = [ind.parent_id] + self.lineage_dict[ind.parent_id]
+                else:
+                    # randomly created ind has no parents
+                    self.lineage_dict[ind.id] = []
+
+        current_ids = [ind.id for ind in self]
+        keys_to_remove = [key for key in self.lineage_dict if key not in current_ids]
+        for key in keys_to_remove:
+            del self.lineage_dict[key]
+
     def sort_by_objectives(self):
         """Sorts the population multiple times by each objective, from least important to most important."""
         for ind in self:
@@ -461,8 +486,9 @@ class Population(object):
         self.sort(key="age", reverse=False)  # (min) protects younger, undeveloped solutions
 
         for rank in reversed(range(len(self.objective_dict))):
-            goal = self.objective_dict[rank]
-            self.sort(key=goal["name"], reverse=goal["maximize"])
+            if not self.objective_dict[rank]["logging_only"]:
+                goal = self.objective_dict[rank]
+                self.sort(key=goal["name"], reverse=goal["maximize"])
 
         self.sort(key="pareto_level", reverse=False)  # min
 
@@ -479,9 +505,10 @@ class Population(object):
         # losses = []  # 2 dominates 1
         wins = []  # 1 dominates 2
         for rank in reversed(range(len(self.objective_dict))):
-            goal = self.objective_dict[rank]
-            # losses += [dominates(ind2, ind1, goal["name"], goal["maximize"])]  # ind2 dominates ind1?
-            wins += [dominates(ind1, ind2, goal["name"], goal["maximize"])]  # ind1 dominates ind2?
+            if not self.objective_dict[rank]["logging_only"]:
+                goal = self.objective_dict[rank]
+                # losses += [dominates(ind2, ind1, goal["name"], goal["maximize"])]  # ind2 dominates ind1?
+                wins += [dominates(ind1, ind2, goal["name"], goal["maximize"])]  # ind1 dominates ind2?
         # return np.any(losses) and not np.any(wins)
         return not np.any(wins)
 

@@ -38,6 +38,20 @@ CVX_Environment::CVX_Environment(void)
 	floorRadius = 0.0;
 	limitedFloor = false;
 	TimeBetweenTraces = 0.0;
+	NormDistByVol = false;
+	NormalizationExponent = 1.0;
+	BallisticSlowdownFact = 0.1;
+	MaxSlowdownPermitted = 0.1;
+	SaveTraces = false;
+
+	FallingProhibited = false;
+	TerminationRelative = false;
+	OnsetRelative = false;
+
+
+	NumTimeStepsInWindow = 0;
+
+	NeedleInHaystack = false;
 }
 
 CVX_Environment::~CVX_Environment(void)
@@ -192,11 +206,27 @@ bool CVX_Environment::ReadXML(CXML_Rip* pXML, std::string* RetMessage) //pXML po
 		pXML->UpLevel();
 	}
 
-	if (!pXML->FindLoadElement("GrowthAmplitude", &growthAmplitude)) growthAmplitude = 0; // disabled
+	if (!pXML->FindLoadElement("GrowthAmplitude", &growthAmplitude)) growthAmplitude = 0;
+	if (!pXML->FindLoadElement("MinGrowthTime", &minGrowthTime)) minGrowthTime = 0;
 	if (!pXML->FindLoadElement("GrowthModel", &growthModel)) growthModel = 0;
 
+    if (!pXML->FindLoadElement("NormDistByVol", &NormDistByVol)) NormDistByVol = false;
+    if (!pXML->FindLoadElement("SaveTraces", &SaveTraces)) SaveTraces = false;
 	if (!pXML->FindLoadElement("TimeBetweenTraces", &TimeBetweenTraces)) TimeBetweenTraces = 0.0;
+	if (!pXML->FindLoadElement("StickyFloor", &StickyFloor)) StickyFloor = false;
 
+	if (!pXML->FindLoadElement("FallingProhibited", &FallingProhibited)) FallingProhibited = false;
+
+	if (!pXML->FindLoadElement("OnsetRelative", &OnsetRelative)) OnsetRelative = false;
+	if (!pXML->FindLoadElement("TerminationRelative", &TerminationRelative)) TerminationRelative = false;
+
+	if (!pXML->FindLoadElement("NormalizationExponent", &NormalizationExponent)) NormalizationExponent = 1.0;
+	if (!pXML->FindLoadElement("BallisticSlowdownFact", &BallisticSlowdownFact)) BallisticSlowdownFact = 0.01;
+    if (!pXML->FindLoadElement("MaxSlowdownPermitted", &MaxSlowdownPermitted)) MaxSlowdownPermitted = 0.1;
+
+	if (!pXML->FindLoadElement("NumTimeStepsInWindow", &NumTimeStepsInWindow)) NumTimeStepsInWindow = 0;
+
+    if (!pXML->FindLoadElement("NeedleInHaystack", &NeedleInHaystack)) NeedleInHaystack = false;
 
 	if (pXML->FindLoadElement("FloorRadius", &floorRadius)) 		
 		limitedFloor = true;

@@ -30,7 +30,7 @@ def read_voxlyze_results(population, print_log, filename="softbotsOutput.xml"):
         if tag is not None:
             for line in this_file:
                 if tag in line:
-                    results[rank] = abs(float(line[line.find(tag) + len(tag):line.find("</" + tag[1:])]))
+                    results[rank] = float(line[line.find(tag) + len(tag):line.find("</" + tag[1:])])
 
     return results
 
@@ -88,6 +88,8 @@ def write_voxelyze_file(sim, env, individual, run_directory, run_name):
         <StopCondition>\n\
         <StopConditionType>" + str(int(sim.stop_condition)) + "</StopConditionType>\n\
         <StopConditionValue>" + str(sim.simulation_time) + "</StopConditionValue>\n\
+        <AfterlifeTime>" + str(sim.afterlife_time) + "</AfterlifeTime>\n\
+        <MidLifeFreezeTime>" + str(sim.mid_life_freeze_time) + "</MidLifeFreezeTime>\n\
         <InitCmTime>" + str(sim.fitness_eval_init_time) + "</InitCmTime>\n\
         </StopCondition>\n\
         <EquilibriumMode>\n\
@@ -110,8 +112,15 @@ def write_voxelyze_file(sim, env, individual, run_directory, run_name):
         <ThresholdTime>" + str(0) + "</ThresholdTime>\n\
         <MaxKP>" + str(0) + "</MaxKP>\n\
         <MaxKI>" + str(0) + "</MaxKI>\n\
-        <MaxANTIWINDUP>" + str(0) + "</MaxANTIWINDUP>\n\
-        </Simulator>\n")
+        <MaxANTIWINDUP>" + str(0) + "</MaxANTIWINDUP>\n")
+
+    if hasattr(individual, "parent_lifetime"):
+        if individual.parent_lifetime > 0:
+            voxelyze_file.write("<ParentLifetime>" + str(individual.parent_lifetime) + "</ParentLifetime>\n")
+        elif individual.lifetime > 0:
+            voxelyze_file.write("<ParentLifetime>" + str(individual.lifetime) + "</ParentLifetime>\n")
+
+    voxelyze_file.write("</Simulator>\n")
 
     # Env
     voxelyze_file.write(
@@ -134,7 +143,7 @@ def write_voxelyze_file(sim, env, individual, run_directory, run_name):
         </Gravity>\n\
         <Thermal>\n\
         <TempEnabled>" + str(env.temp_enabled) + "</TempEnabled>\n\
-        <TempAmp>39</TempAmp>\n\
+        <TempAmp>" + str(env.temp_amp) + "</TempAmp>\n\
         <TempBase>25</TempBase>\n\
         <VaryTempEnabled>1</VaryTempEnabled>\n\
         <TempPeriod>" + str(1.0 / env.frequency) + "</TempPeriod>\n\
@@ -163,100 +172,172 @@ def write_voxelyze_file(sim, env, individual, run_directory, run_name):
         </Voxel>\n\
         <Palette>\n\
         <Material ID=\"1\">\n\
-        <MatType>0</MatType>\n\
-        <Name>Passive_Soft</Name>\n\
-        <Display>\n\
-        <Red>0</Red>\n\
-        <Green>1</Green>\n\
-        <Blue>1</Blue>\n\
-        <Alpha>1</Alpha>\n\
-        </Display>\n\
-        <Mechanical>\n\
-        <MatModel>0</MatModel>\n\
-        <Elastic_Mod>" + str(env.softest_material) + "e+006</Elastic_Mod>\n\
-        <Plastic_Mod>0</Plastic_Mod>\n\
-        <Yield_Stress>0</Yield_Stress>\n\
-        <FailModel>0</FailModel>\n\
-        <Fail_Stress>0</Fail_Stress>\n\
-        <Fail_Strain>0</Fail_Strain>\n\
-        <Density>1e+006</Density>\n\
-        <Poissons_Ratio>0.35</Poissons_Ratio>\n\
-        <CTE>0</CTE>\n\
-        <uStatic>1</uStatic>\n\
-        <uDynamic>0.5</uDynamic>\n\
-        </Mechanical>\n\
+            <MatType>0</MatType>\n\
+            <Name>Passive_Soft</Name>\n\
+            <Display>\n\
+            <Red>0</Red>\n\
+            <Green>1</Green>\n\
+            <Blue>1</Blue>\n\
+            <Alpha>1</Alpha>\n\
+            </Display>\n\
+            <Mechanical>\n\
+            <MatModel>0</MatModel>\n\
+            <Elastic_Mod>" + str(env.fat_stiffness) + "</Elastic_Mod>\n\
+            <Plastic_Mod>0</Plastic_Mod>\n\
+            <Yield_Stress>0</Yield_Stress>\n\
+            <FailModel>0</FailModel>\n\
+            <Fail_Stress>0</Fail_Stress>\n\
+            <Fail_Strain>0</Fail_Strain>\n\
+            <Density>1e+006</Density>\n\
+            <Poissons_Ratio>0.35</Poissons_Ratio>\n\
+            <CTE>0</CTE>\n\
+            <uStatic>1</uStatic>\n\
+            <uDynamic>0.5</uDynamic>\n\
+            </Mechanical>\n\
         </Material>\n\
         <Material ID=\"2\">\n\
-        <MatType>0</MatType>\n\
-        <Name>Passive_Hard</Name>\n\
-        <Display>\n\
-        <Red>0</Red>\n\
-        <Green>0</Green>\n\
-        <Blue>1</Blue>\n\
-        <Alpha>1</Alpha>\n\
-        </Display>\n\
-        <Mechanical>\n\
-        <MatModel>0</MatModel>\n\
-        <Elastic_Mod>" + str(env.softest_material) + "e+008</Elastic_Mod>\n\
-        <Plastic_Mod>0</Plastic_Mod>\n\
-        <Yield_Stress>0</Yield_Stress>\n\
-        <FailModel>0</FailModel>\n\
-        <Fail_Stress>0</Fail_Stress>\n\
-        <Fail_Strain>0</Fail_Strain>\n\
-        <Density>1e+006</Density>\n\
-        <Poissons_Ratio>0.35</Poissons_Ratio>\n\
-        <CTE>0</CTE>\n\
-        <uStatic>1</uStatic>\n\
-        <uDynamic>0.5</uDynamic>\n\
-        </Mechanical>\n\
+            <MatType>0</MatType>\n\
+            <Name>Passive_Hard</Name>\n\
+            <Display>\n\
+            <Red>0</Red>\n\
+            <Green>0</Green>\n\
+            <Blue>1</Blue>\n\
+            <Alpha>1</Alpha>\n\
+            </Display>\n\
+            <Mechanical>\n\
+            <MatModel>0</MatModel>\n\
+            <Elastic_Mod>" + str(env.bone_stiffness) + "</Elastic_Mod>\n\
+            <Plastic_Mod>0</Plastic_Mod>\n\
+            <Yield_Stress>0</Yield_Stress>\n\
+            <FailModel>0</FailModel>\n\
+            <Fail_Stress>0</Fail_Stress>\n\
+            <Fail_Strain>0</Fail_Strain>\n\
+            <Density>1e+006</Density>\n\
+            <Poissons_Ratio>0.35</Poissons_Ratio>\n\
+            <CTE>0</CTE>\n\
+            <uStatic>1</uStatic>\n\
+            <uDynamic>0.5</uDynamic>\n\
+            </Mechanical>\n\
         </Material>\n\
-        <Material ID=\"3\">\n\
-        <MatType>0</MatType>\n\
-        <Name>Active_+</Name>\n\
-        <Display>\n\
-        <Red>1</Red>\n\
-        <Green>0</Green>\n\
-        <Blue>0</Blue>\n\
-        <Alpha>1</Alpha>\n\
-        </Display>\n\
-        <Mechanical>\n\
-        <MatModel>0</MatModel>\n\
-        <Elastic_Mod>" + str(env.material_stiffness) + "</Elastic_Mod>\n\
-        <Plastic_Mod>0</Plastic_Mod>\n\
-        <Yield_Stress>0</Yield_Stress>\n\
-        <FailModel>0</FailModel>\n\
-        <Fail_Stress>0</Fail_Stress>\n\
-        <Fail_Strain>0</Fail_Strain>\n\
-        <Density>1e+006</Density>\n\
-        <Poissons_Ratio>0.35</Poissons_Ratio>\n\
-        <CTE>" + str(0.01*(1+random.uniform(0, env.actuation_variance))) + "</CTE>\n\
-        <uStatic>1</uStatic>\n\
-        <uDynamic>0.5</uDynamic>\n\
-        </Mechanical>\n\
+            <Material ID=\"3\">\n\
+            <MatType>0</MatType>\n\
+            <Name>Active_+</Name>\n\
+            <Display>\n\
+            <Red>1</Red>\n\
+            <Green>0</Green>\n\
+            <Blue>0</Blue>\n\
+            <Alpha>1</Alpha>\n\
+            </Display>\n\
+            <Mechanical>\n\
+            <MatModel>0</MatModel>\n\
+            <Elastic_Mod>" + str(env.muscle_stiffness) + "</Elastic_Mod>\n\
+            <Plastic_Mod>0</Plastic_Mod>\n\
+            <Yield_Stress>0</Yield_Stress>\n\
+            <FailModel>0</FailModel>\n\
+            <Fail_Stress>0</Fail_Stress>\n\
+            <Fail_Strain>0</Fail_Strain>\n\
+            <Density>1e+006</Density>\n\
+            <Poissons_Ratio>0.35</Poissons_Ratio>\n\
+            <CTE>" + str(0.01*(1+random.uniform(0, env.actuation_variance))) + "</CTE>\n\
+            <uStatic>1</uStatic>\n\
+            <uDynamic>0.5</uDynamic>\n\
+            </Mechanical>\n\
         </Material>\n\
         <Material ID=\"4\">\n\
-        <MatType>0</MatType>\n\
-        <Name>Active_-</Name>\n\
-        <Display>\n\
-        <Red>0</Red>\n\
-        <Green>1</Green>\n\
-        <Blue>0</Blue>\n\
-        <Alpha>1</Alpha>\n\
-        </Display>\n\
-        <Mechanical>\n\
-        <MatModel>0</MatModel>\n\
-        <Elastic_Mod>" + str(env.softest_material) + "e+006</Elastic_Mod>\n\
-        <Plastic_Mod>0</Plastic_Mod>\n\
-        <Yield_Stress>0</Yield_Stress>\n\
-        <FailModel>0</FailModel>\n\
-        <Fail_Stress>0</Fail_Stress>\n\
-        <Fail_Strain>0</Fail_Strain>\n\
-        <Density>1e+006</Density>\n\
-        <Poissons_Ratio>0.35</Poissons_Ratio>\n\
-        <CTE>" + str(-0.01*(1+random.uniform(0, env.actuation_variance))) + "</CTE>\n\
-        <uStatic>1</uStatic>\n\
-        <uDynamic>0.5</uDynamic>\n\
-        </Mechanical>\n\
+            <MatType>0</MatType>\n\
+            <Name>Active_-</Name>\n\
+            <Display>\n\
+            <Red>0</Red>\n\
+            <Green>1</Green>\n\
+            <Blue>0</Blue>\n\
+            <Alpha>1</Alpha>\n\
+            </Display>\n\
+            <Mechanical>\n\
+            <MatModel>0</MatModel>\n\
+            <Elastic_Mod>" + str(env.muscle_stiffness) + "</Elastic_Mod>\n\
+            <Plastic_Mod>0</Plastic_Mod>\n\
+            <Yield_Stress>0</Yield_Stress>\n\
+            <FailModel>0</FailModel>\n\
+            <Fail_Stress>0</Fail_Stress>\n\
+            <Fail_Strain>0</Fail_Strain>\n\
+            <Density>1e+006</Density>\n\
+            <Poissons_Ratio>0.35</Poissons_Ratio>\n\
+            <CTE>" + str(-0.01*(1+random.uniform(0, env.actuation_variance))) + "</CTE>\n\
+            <uStatic>1</uStatic>\n\
+            <uDynamic>0.5</uDynamic>\n\
+            </Mechanical>\n\
+        </Material>\n\
+        <Material ID=\"5\">\n\
+            <MatType>0</MatType>\n\
+            <Name>Obstacle</Name>\n\
+            <Display>\n\
+            <Red>1</Red>\n\
+            <Green>0.784</Green>\n\
+            <Blue>0</Blue>\n\
+            <Alpha>1</Alpha>\n\
+            </Display>\n\
+            <Mechanical>\n\
+            <MatModel>0</MatModel>\n\
+            <Elastic_Mod>5e+007</Elastic_Mod>\n\
+            <Plastic_Mod>0</Plastic_Mod>\n\
+            <Yield_Stress>0</Yield_Stress>\n\
+            <FailModel>0</FailModel>\n\
+            <Fail_Stress>0</Fail_Stress>\n\
+            <Fail_Strain>0</Fail_Strain>\n\
+            <Density>1e+006</Density>\n\
+            <Poissons_Ratio>0.35</Poissons_Ratio>\n\
+            <CTE>0</CTE>\n\
+            <uStatic>1</uStatic>\n\
+            <uDynamic>0.5</uDynamic>\n\
+            </Mechanical>\n\
+        </Material>\n\
+        <Material ID=\"6\">\n\
+            <MatType>0</MatType>\n\
+            <Name>Head_Active_+</Name>\n\
+            <Display>\n\
+            <Red>1</Red>\n\
+            <Green>1</Green>\n\
+            <Blue>0</Blue>\n\
+            <Alpha>1</Alpha>\n\
+            </Display>\n\
+            <Mechanical>\n\
+            <MatModel>0</MatModel>\n\
+            <Elastic_Mod>" + str(env.fat_stiffness) + "</Elastic_Mod>\n\
+            <Plastic_Mod>0</Plastic_Mod>\n\
+            <Yield_Stress>0</Yield_Stress>\n\
+            <FailModel>0</FailModel>\n\
+            <Fail_Stress>0</Fail_Stress>\n\
+            <Fail_Strain>0</Fail_Strain>\n\
+            <Density>1e+006</Density>\n\
+            <Poissons_Ratio>0.35</Poissons_Ratio>\n\
+            <CTE>" + str(0.01 * (1 + random.uniform(0, env.actuation_variance))) + "</CTE>\n\
+            <uStatic>1</uStatic>\n\
+            <uDynamic>0.5</uDynamic>\n\
+            </Mechanical>\n\
+        </Material>\n\
+        <Material ID=\"7\">\n\
+            <MatType>0</MatType>\n\
+            <Name>Food</Name>\n\
+            <Display>\n\
+            <Red>1</Red>\n\
+            <Green>1</Green>\n\
+            <Blue>0</Blue>\n\
+            <Alpha>1</Alpha>\n\
+            </Display>\n\
+            <Mechanical>\n\
+            <MatModel>0</MatModel>\n\
+            <Elastic_Mod>" + str(env.muscle_stiffness) + "</Elastic_Mod>\n\
+            <Plastic_Mod>0</Plastic_Mod>\n\
+            <Yield_Stress>0</Yield_Stress>\n\
+            <FailModel>0</FailModel>\n\
+            <Fail_Stress>0</Fail_Stress>\n\
+            <Fail_Strain>0</Fail_Strain>\n\
+            <Density>1e+006</Density>\n\
+            <Poissons_Ratio>0.35</Poissons_Ratio>\n\
+            <CTE>0</CTE>\n\
+            <uStatic>1</uStatic>\n\
+            <uDynamic>0.5</uDynamic>\n\
+            </Mechanical>\n\
         </Material>\n\
         </Palette>\n\
         <Structure Compression=\"ASCII_READABLE\">\n\
@@ -281,7 +362,8 @@ def write_voxelyze_file(sim, env, individual, run_directory, run_name):
     for name, details in individual.genotype.to_phenotype_mapping.items():
 
         # start tag
-        voxelyze_file.write(details["tag"]+"\n")
+        if details["env_kws"] is None:
+            voxelyze_file.write(details["tag"]+"\n")
 
         # record any additional params associated with the output
         if details["params"] is not None:
@@ -308,7 +390,8 @@ def write_voxelyze_file(sim, env, individual, run_directory, run_name):
                 voxelyze_file.write("]]></Layer>\n")
 
         # end tag
-        voxelyze_file.write("</" + details["tag"][1:] + "\n")
+        if details["env_kws"] is None:
+            voxelyze_file.write("</" + details["tag"][1:] + "\n")
 
     voxelyze_file.write(
         "</Structure>\n\

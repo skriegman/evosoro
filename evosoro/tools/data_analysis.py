@@ -9,13 +9,21 @@ def get_output_values(filename, output_name):
     return [float(string) for layer in data for string in layer.text.split(', ') if string != ""]
 
 
-def get_all_data(paths_to_files):
+def get_all_data(paths_to_files, delimiter="\t\t", lineterminator='\n', engine='python', drop_duplicates_subset=None):
     run = []
     df = pd.DataFrame()
     for n, path in enumerate(paths_to_files):
-        this_df = pd.read_table(path, delim_whitespace=True)
+        this_df = pd.read_table(path, delimiter=delimiter, lineterminator=lineterminator, engine=engine)
         run += [n] * len(this_df)
         df = pd.concat([df, this_df])
+
+        if drop_duplicates_subset is not None:
+            start_length = len(df)
+            df = df.drop_duplicates(subset=drop_duplicates_subset)
+            num_duplicates = start_length - len(df)
+            print "{} duplicates".format(num_duplicates)
+            run = run[num_duplicates:]
+
     df['run'] = run
     return df
 

@@ -1,9 +1,9 @@
 from evosoro.tools.utils import xml_format
 
 
-# TODO: move params to correct subclasses
-# TODO: remove as much hard coded text from read_write_voxelyze.py as possible
-# TODO: add method to VoxCadParams for organizing (nested) subsections in vxa files --> this will simplify writing vxa's
+# TODO: classes should hold dictionaries of variables, vxa tags and values
+# TODO: remove most of the hard coded text from read_write_voxelyze.py and replace with a few loops
+# TODO: add method to VoxCadParams for organizing (nested) subsections in vxa files
 
 
 class VoxCadParams(object):
@@ -23,7 +23,8 @@ class Sim(VoxCadParams):
 
     def __init__(self, self_collisions_enabled=True, simulation_time=10, dt_frac=0.7, stop_condition=2,
                  fitness_eval_init_time=2, equilibrium_mode=0, min_temp_fact=0.1, max_temp_fact_change=0.00001,
-                 max_stiffness_change=10000, min_elastic_mod=5e006, max_elastic_mod=5e008):
+                 max_stiffness_change=10000, min_elastic_mod=5e006, max_elastic_mod=5e008, afterlife_time=0,
+                 mid_life_freeze_time=0):
 
         VoxCadParams.__init__(self)
 
@@ -42,13 +43,16 @@ class Sim(VoxCadParams):
         self.min_elastic_mod = min_elastic_mod
         self.max_elastic_mod = max_elastic_mod
 
+        self.afterlife_time = afterlife_time
+        self.mid_life_freeze_time = mid_life_freeze_time
+
 
 class Env(VoxCadParams):
     """Container for VoxCad environment parameters."""
 
     def __init__(self, frequency=4.0, gravity_enabled=1, temp_enabled=1, floor_enabled=1, floor_slope=0.0,
-                 lattice_dimension=0.01, softest_material=5, material_stiffness=5e+006, sticky_floor=0,
-                 time_between_traces=0, actuation_variance=0):
+                 lattice_dimension=0.01, fat_stiffness=5e+006, bone_stiffness=5e+008, muscle_stiffness=5e+006,
+                 sticky_floor=0, time_between_traces=0, actuation_variance=0, temp_amp=39):
 
         VoxCadParams.__init__(self)
 
@@ -60,11 +64,13 @@ class Env(VoxCadParams):
         self.temp_enabled = temp_enabled
         self.floor_slope = floor_slope
         self.lattice_dimension = lattice_dimension  # TODO: remove this (it is in Material)
-        self.material_stiffness = material_stiffness  # TODO: remove this (it is in Material)
-        self.softest_material = softest_material  # TODO: remove this (it is in Material)
+        self.muscle_stiffness = muscle_stiffness  # TODO: remove this (it is in Material)
+        self.bone_stiffness = bone_stiffness  # TODO: remove this (it is in Material)
+        self.fat_stiffness = fat_stiffness  # TODO: remove this (it is in Material)
         self.sticky_floor = sticky_floor
         self.time_between_traces = time_between_traces
         self.actuation_variance = actuation_variance
+        self.temp_amp = temp_amp
 
 
 class Material(VoxCadParams):
@@ -98,7 +104,7 @@ class ObjectiveDict(dict):
     #     raise SyntaxError
     # TODO: want to restrict input but this prevents deep copying: maybe instead just make object with embedded dict
 
-    def add_objective(self, name, maximize, tag, node_func=None, output_node_name=None):
+    def add_objective(self, name, maximize, tag, node_func=None, output_node_name=None, logging_only=False):
         """Add an optimization objective to the dictionary.
 
         Objectives must be added in order of importance, however fitness is fixed to be the most important.
@@ -124,6 +130,9 @@ class ObjectiveDict(dict):
         output_node_name : str
             The output node which node_func operates on.
 
+        logging_only : bool
+            If True then don't use as objective, only to track statistics from the simulation.
+
         """
         curr_rank = self.max_rank
 
@@ -138,5 +147,8 @@ class ObjectiveDict(dict):
                                                            "tag": xml_format(tag) if tag is not None else None,
                                                            "worst_value": -10e6 if maximize else 10e6,
                                                            "node_func": node_func,
-                                                           "output_node_name": output_node_name})
+                                                           "output_node_name": output_node_name,
+                                                           "logging_only": logging_only})
+
+        # TODO: logging_only 'objectives' should be a separate 'SimStats' class
         self.max_rank += 1

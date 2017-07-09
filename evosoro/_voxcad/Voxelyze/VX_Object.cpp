@@ -1907,6 +1907,102 @@ bool CVXC_Structure::ReadXML(CXML_Rip* pXML, std::string Version, std::string* R
 		usingPhaseOffset = false;
 	}
 
+	if (pXML->FindElement("FinalPhaseOffset")){
+		usingFinalPhaseOffset = true;
+		int voxCounter = 0;
+
+		InitFinalPhaseOffsetArray(X_Voxels*Y_Voxels*Z_Voxels);
+		for (int i=0; i<Z_Voxels; i++)
+		{
+			std::string DataIn;
+			std::string RawData;
+			pXML->FindLoadElement("Layer", &RawData, true, true);
+
+			std::vector<std::string> dataArray;
+			dataArray = split(RawData,',',dataArray);
+			for (int k=0; k<X_Voxels*Y_Voxels; k++)
+			{
+				if (pData[X_Voxels*Y_Voxels*i+k] > 0)
+				{
+					SetFinalPhaseOffset(voxCounter,atof(dataArray[k].c_str()));
+					voxCounter++;
+				}
+			}
+		}
+		pXML->UpLevel(); //Layer
+		pXML->UpLevel(); //Weights
+
+	}
+	else
+	{
+		usingFinalPhaseOffset = false;
+	}
+
+
+	if (pXML->FindElement("TempAmpDamp")){
+		usingTempAmpDamp = true;
+		int voxCounter = 0;
+
+		InitTempAmpDampArray(X_Voxels*Y_Voxels*Z_Voxels);
+		for (int i=0; i<Z_Voxels; i++)
+		{
+			std::string DataIn;
+			std::string RawData;
+			pXML->FindLoadElement("Layer", &RawData, true, true);
+
+			std::vector<std::string> dataArray;
+			dataArray = split(RawData,',',dataArray);
+			for (int k=0; k<X_Voxels*Y_Voxels; k++)
+			{
+				if (pData[X_Voxels*Y_Voxels*i+k] > 0)
+				{
+					SetTempAmpDamp(voxCounter,atof(dataArray[k].c_str()));
+					voxCounter++;
+				}
+			}
+		}
+		pXML->UpLevel(); //Layer
+		pXML->UpLevel(); //Weights
+
+	}
+	else
+	{
+		usingTempAmpDamp = false;
+	}
+
+
+	if (pXML->FindElement("FinalTempAmpDamp")){
+		usingFinalTempAmpDamp = true;
+		int voxCounter = 0;
+
+		InitFinalTempAmpDampArray(X_Voxels*Y_Voxels*Z_Voxels);
+		for (int i=0; i<Z_Voxels; i++)
+		{
+			std::string DataIn;
+			std::string RawData;
+			pXML->FindLoadElement("Layer", &RawData, true, true);
+
+			std::vector<std::string> dataArray;
+			dataArray = split(RawData,',',dataArray);
+			for (int k=0; k<X_Voxels*Y_Voxels; k++)
+			{
+				if (pData[X_Voxels*Y_Voxels*i+k] > 0)
+				{
+					SetFinalTempAmpDamp(voxCounter,atof(dataArray[k].c_str()));
+					voxCounter++;
+				}
+			}
+		}
+		pXML->UpLevel(); //Layer
+		pXML->UpLevel(); //Weights
+
+	}
+	else
+	{
+		usingFinalTempAmpDamp = false;
+	}
+
+
 
 	if (pXML->FindElement("InitialVoxelSize"))
 	{ 	

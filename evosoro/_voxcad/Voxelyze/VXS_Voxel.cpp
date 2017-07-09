@@ -106,9 +106,10 @@ void CVXS_Voxel::ResetVoxel(void) //resets this voxel to its defualt (imported) 
 
 	Pos = GetNominalPosition(); //only position and size need to be set
 
-	Scale = initialVoxelSize; //GetNominalSize();
+	Scale = GetNominalSize(); // initialVoxelSize
+    lastScale = Scale;
 
-	lastTempFact = Scale/GetNominalSize();
+	//lastTempFact = Scale/GetNominalSize();
 	// TempFact = ?
 
 	InputForce = Vec3D<>(0,0,0); //?
@@ -220,61 +221,193 @@ void CVXS_Voxel::EulerStep()
 		}
 	}
 
-	//SCALE
-	TempFact = 0;
+	// SCALE
+	vfloat maxScale = (1+pSim->pEnv->getGrowthAmplitude())*GetNominalSize();  // max size is specified by growth amplitude
+    vfloat minScale = pSim->getMinTempFact()*GetNominalSize();  // min size has hard limit based on physics engine stability
+    vfloat currScale = Scale;
     vfloat CtrlTempFact = 0;
     vfloat DevTempFact = 0;
+    vfloat DevPhaseAddOn = 0;
+    vfloat DevTempAmpDampAddOn = 0;
+    vfloat k = 0;
+    vfloat FrozenTimeAdj = 0;
+    vfloat FreezeInitialized = 1;
 
-	// CONTROL: Thermal actuation
-	if(pSim->IsFeatureEnabled(VXSFEAT_TEMPERATURE) and pSim->CurTime >= pSim->GetInitCmTime())
+    // Prenatal linear development - occurs before actuation (very large, quick changes in scale can cause instability)
+    vfloat c = (pSim->CurTime >= 0.5 * pSim->GetInitCmTime()) ? 1.0 : 2*pSim->CurTime/pSim->GetInitCmTime();
+    vfloat PreNatalTempFrac = c * ((initialVoxelSize / GetNominalSize()) - 1);
+
+
+    // Freeze development in the middle of the lifetime
+    if (pSim->GetMidLifeFreezeTime() > 0)
+    {
+        vfloat middleTime = 0.5 * (pSim->GetStopConditionValue() - pSim->GetInitCmTime());
+        vfloat FreezeStart = middleTime - 0.5*pSim->GetMidLifeFreezeTime();
+        vfloat FreezeEnd = middleTime + 0.5*pSim->GetMidLifeFreezeTime();
+
+        if ((pSim->CurTime > FreezeStart) and (pSim->CurTime < FreezeEnd))
+        {
+            FrozenTimeAdj = pSim->CurTime - FreezeStart;
+            if (pSim->CurTime < FreezeStart + pSim->GetInitCmTime())
+            {
+                FreezeInitialized = 0;
+            }
+        }
+        if (pSim->CurTime > FreezeEnd)
+        {
+            FrozenTimeAdj = pSim->GetMidLifeFreezeTime();
+        }
+    }
+
+	// Postnatal linear development
+    if ((pSim->CurTime >= startGrowthTime) && (growthTime>0))
+	{
+        vfloat EffectiveCurTime = (pSim->CurTime <=  startGrowthTime + growthTime + pSim->GetMidLifeFreezeTime()) ? pSim->CurTime : startGrowthTime + growthTime + pSim->GetMidLifeFreezeTime();
+        // when EffectiveCurTime = StartGrowthTime: k=0, when the EffectiveCurTime = startGrowthTime+growthTime: k=1
+        EffectiveCurTime = EffectiveCurTime - FrozenTimeAdj;
+        k = (EffectiveCurTime - startGrowthTime) / growthTime;
+
+        if (pSim->pEnv->pObj->GetUsingFinalVoxelSize())
+        {
+		    DevTempFact = k * ((finalVoxelSize / initialVoxelSize) - 1.0);  // need to get a TempFact from a voxel size
+		}
+
+		// for now we only have a single growthTime for control and morphology
+		if (pSim->pEnv->pObj->GetUsingFinalPhaseOffset())
+        {
+		    DevPhaseAddOn = k * (finalPhaseOffset - phaseOffset);
+		    // std::cout << "k: " << k  << std::endl;
+		    // std::cout << "init: " << phaseOffset  << std::endl;
+		    // std::cout << "final: " << finalPhaseOffset  << std::endl;
+		}
+
+		if (pSim->pEnv->pObj->GetUsingFinalTempAmpDamp())
+        {
+		    DevTempAmpDampAddOn = k * (finalTempAmpDamp - TempAmpDamp);
+		}
+
+    }
+
+    // Control - thermal actuation
+	if (pSim->IsFeatureEnabled(VXSFEAT_TEMPERATURE) and pSim->CurTime >= pSim->GetInitCmTime())
 	{
 		vfloat ThisTemp = _pMat->GetCurMatTemp();
 		vfloat ThisCTE = GetCTE();
 		vfloat TempBase =  pSim->pEnv->GetTempBase();
-		CtrlTempFact = (TempAmplitude*sin(2*3.1415926f * (pSim->CurTime/TempPeriod + phaseOffset)))*ThisCTE;
+
+	    vfloat ThisPhase = phaseOffset + DevPhaseAddOn;
+	    // std::cout << "phase: " << ThisPhase  << std::endl;
+	    vfloat ThisTempAmpDamp = TempAmpDamp + DevTempAmpDampAddOn;
+	    // std::cout << "Temp Amp Damping: " << ThisTempAmpDamp  << std::endl;
+		CtrlTempFact = ThisTempAmpDamp*(TempAmplitude*sin(2*3.1415926f * (pSim->CurTime/TempPeriod + ThisPhase)))*ThisCTE*FreezeInitialized;
+		//std::cout << "CtrlTempFact: " << CtrlTempFact  << std::endl;
+		//std::cout << "ThisCTE: " << ThisCTE  << std::endl;
 	}
 
-	// DEVELOPMENT: ballistic growth/shrinkage
-    if(pSim->CurTime >= startGrowthTime && pSim->pEnv->pObj->GetUsingFinalVoxelSize())  // && growthTime > 0.05 // previously startGrowthTime was pSim->GetInitCmTime()
-	{
-        vfloat EffectiveCurTime = (pSim->CurTime <=  startGrowthTime + growthTime) ? pSim->CurTime : startGrowthTime + growthTime;
-        // when EffectiveCurTime = StartGrowthTime: k=0, when the EffectiveCurTime = startGrowthTime+growthTime: k=1
-        vfloat k = (EffectiveCurTime - startGrowthTime) / growthTime;
-		DevTempFact = k * ((finalVoxelSize / initialVoxelSize) - 1.0);  // need to get a TempFact from a voxel size
+    // Adjust actuation relative to size
+    if (pSim->pEnv->pObj->GetUsingInitialVoxelSize() || pSim->pEnv->pObj->GetUsingFinalVoxelSize())
+    {
+        // calc size based on pre and post natal growth/shrinkage
+        vfloat currSize = (1+PreNatalTempFrac)*(1+DevTempFact)*GetNominalSize();
+
+        // back out from size to the original sigmoid (but is truncated below minTempFact in Sim.cpp)
+        vfloat originalSigmoid = (currSize/GetNominalSize()-1) / pSim->pEnv->getGrowthAmplitude();
+        vfloat positiveSigmoid = (originalSigmoid + 1) * 0.5;  // smush it from (-1, 1) to (0, 1)
+        vfloat cappedSigmoid = (positiveSigmoid > 0.5) ? 0.5 : positiveSigmoid;  // limit the actuation for shrinking voxels
+
+        // apply limits to actuation
+        CtrlTempFact = CtrlTempFact*cappedSigmoid*2;
+    }
+
+    // scale with actuation based on current size
+    currScale = CtrlTempFact*GetNominalSize() + (1+PreNatalTempFrac)*(1+DevTempFact)*GetNominalSize();
+
+    // apply limits to scale
+	if (currScale < lastScale && currScale < minScale) {
+	    currScale = lastScale;
 	}
 
-	TempFact = 1 + CtrlTempFact + DevTempFact;
-
-	if (TempFact < pSim->getMinTempFact()) TempFact = pSim->getMinTempFact();
-
-	if(pSim->CurTime >= pSim->GetInitCmTime())
-	{
-		// FC: The following saturation of voxel size should only be applied when growthAmplitude is set to some meaningful value (!=0).
-		// When using the basic setting (growthAmplitude not set -> = 0 by default), we were limiting actuation to half actuation cycle.
-		// (i.e. voxels could only shrink below the nominal size, but couldn't expand)
-		// TODO : this workaround should solve for the time being, but we need to keep things consistent if introducing
-		// 		  different flags for different settings using growth. Or, we may want to always set growthAmplitude, even in the basic setting.		
-		if(pSim->pEnv->pObj->GetUsingFinalVoxelSize() || pSim->pEnv->pObj->GetUsingGrowthTime())
-		{
-			if(TempFact*initialVoxelSize >= (1 + pSim->pEnv->getGrowthAmplitude()) * GetNominalSize() && TempFact > lastTempFact)
-			{
-			    // we've reached the maximum/minimum dimension, stop growth
-				TempFact = lastTempFact;
-			}
-		}
-
-		// FC: This, instead, should always be ensured (I believe)
-		if(TempFact*initialVoxelSize <= pSim->getMinTempFact() * GetNominalSize() && TempFact < lastTempFact)
-		{
-			// we've reached the maximum/minimum dimension, stop growth
-			TempFact = lastTempFact;
-		}
+	if (currScale > lastScale && currScale > maxScale) {
+	    currScale = lastScale;
 	}
 
-	// New size of the voxel
-	Scale = TempFact*initialVoxelSize;
+    // finally set new scale of voxel based on pre and post natal development as well as limited actuation
+	Scale = currScale;
+	lastScale = Scale;
 
-	lastTempFact = TempFact;
+    // used for coloring
+    RemainingGrowth = finalVoxelSize - (1+PreNatalTempFrac)*(1+DevTempFact)*GetNominalSize();
+    CurPhaseChange = phaseOffset + DevPhaseAddOn;
+
+	// Velocity adjusted development
+	double GrowthBuffer = pSim->pEnv->getMinGrowthTime();  // should this be smaller?
+    if ((pSim->pEnv->GetNumTimeStepsInWindow() > 0) and (pSim->CurTime >= startGrowthTime + GrowthBuffer))
+    {
+        int TimeInWindow = pSim->pEnv->GetNumTimeStepsInWindow()*pSim->pEnv->getTimeBetweenTraces();
+        int NumWindows = pSim->SS.WindowTrace.size();
+        if (pSim->CurTime >= pSim->GetInitCmTime() + 2*TimeInWindow)  // wait until two full windows calculated (two actuation cycles)
+        {
+            double thisSpeed = pSim->SS.WindowTrace[NumWindows];
+            double lastSpeed = pSim->SS.WindowTrace[NumWindows-1];
+            double IsSpeedDecreasing = 0;
+            //std::cout << "ratio speed: " << thisSpeed/lastSpeed <<std::endl;
+            if ((lastSpeed>0) and (thisSpeed < lastSpeed))
+            {
+                IsSpeedDecreasing = (thisSpeed/lastSpeed < 1-pSim->pEnv->GetMaxSlowdownPermitted()) ? 1 : 0;
+            }
+            double BallisticSpeedAdjustment = 1 - IsSpeedDecreasing * pSim->pEnv->GetBallisticSlowdownFact();
+            // when speed is not decreasing there is no adjustment (keep developing)
+            // otherwise apply slowdown factor (can be evolved)
+            // once BallisticSpeedAdjustment is zero development stops indefinitely
+
+            initialVoxelSize = (1+PreNatalTempFrac)*(1+DevTempFact)*GetNominalSize();
+            SuggestedFinalVoxelSize = initialVoxelSize + (finalVoxelSize-initialVoxelSize)*BallisticSpeedAdjustment;
+            //std::cout << "delta devo: " << finalVoxelSize/OriginalFinalVoxelSize-1 <<std::endl;
+
+            // ensure monotonicity and original bounds
+            if (OriginalFinalVoxelSize > initialVoxelSize) {
+                SuggestedFinalVoxelSize = (SuggestedFinalVoxelSize > OriginalFinalVoxelSize) ? OriginalFinalVoxelSize : SuggestedFinalVoxelSize;
+                finalVoxelSize = (SuggestedFinalVoxelSize >= initialVoxelSize) ? SuggestedFinalVoxelSize : initialVoxelSize;
+            }
+            else {
+                SuggestedFinalVoxelSize = (SuggestedFinalVoxelSize < OriginalFinalVoxelSize) ? OriginalFinalVoxelSize : SuggestedFinalVoxelSize;
+                finalVoxelSize = (SuggestedFinalVoxelSize <= initialVoxelSize) ? SuggestedFinalVoxelSize : initialVoxelSize;
+            }
+
+            growthTime = growthTime - (pSim->CurTime - startGrowthTime);
+            growthTime = (growthTime <= 0) ? 0 : growthTime;  // or should the bound be pSim->pEnv->getMinGrowthTime() ?
+            startGrowthTime = pSim->CurTime;
+        }
+    }
+
+
+//  vfloat TempFact = 0;
+//  if (TempFact < pSim->getMinTempFact()) TempFact = pSim->getMinTempFact();
+
+//	if (pSim->CurTime >= pSim->GetInitCmTime())
+//	{
+//		// saturation of voxel size
+//		if (pSim->pEnv->pObj->GetUsingFinalVoxelSize() || pSim->pEnv->pObj->GetUsingGrowthTime())
+//		{
+//			if (TempFact >= (1 + pSim->pEnv->getGrowthAmplitude()) && TempFact > lastTempFact)
+//			{
+//			    // we've reached the maximum/minimum dimension, stop growth
+//				TempFact = lastTempFact;
+//			}
+//		}
+//
+//		// FC: This, instead, should always be ensured (I believe)
+//		if (TempFact  <= pSim->getMinTempFact() && TempFact < lastTempFact)
+//		{
+//			// we've reached the maximum/minimum dimension, stop growth
+//			TempFact = lastTempFact;
+//		}
+//	}
+
+//      //  New size of the voxel
+//      Scale = TempFact*GetNominalSize();
+
+//      lastTempFact = TempFact;
 
 
 	//Recalculate secondary:
@@ -599,6 +732,11 @@ Vec3D<> CVXS_Voxel::CalcFloorEffect(Vec3D<> TotalVoxForce) //calculates the obje
 		vfloat dFrictionForce = LocUDynamic*NormalForce; 
 		Vec3D<> FricForceToAdd = -Vec3D<>(cos(SurfaceVelAngle)*dFrictionForce, sin(SurfaceVelAngle)*dFrictionForce, 0); //always acts in direction opposed to velocity in DYNAMIC friction mode
 		//alwyas acts in direction opposite to force in STATIC friction mode
+
+		if (pSim->pEnv->getUsingStickyFloor())
+		{
+			Vel.x = 0; Vel.y = 0; LinMom.x = 0; LinMom.y = 0; StaticFricFlag = true; // nac: for transfer to reality == assume static friction if touching ground
+		}
 
 		if (Vel.x == 0 && Vel.y == 0){ //STATIC FRICTION: if this point is stopped and in the static friction mode...
 			if (SurfaceForce < LocUStatic*NormalForce) StaticFricFlag = true; //if we don't have enough to break static friction
