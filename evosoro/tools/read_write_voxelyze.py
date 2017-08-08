@@ -14,6 +14,7 @@ def read_voxlyze_results(population, print_log, filename="softbotsOutput.xml"):
         try:
             file_size = os.stat(filename).st_size
             this_file = open(filename)
+            this_file.close()
         except ImportError:  # TODO: is this the correct exception?
             file_size = 0
         i += 1
@@ -31,6 +32,7 @@ def read_voxlyze_results(population, print_log, filename="softbotsOutput.xml"):
             for line in this_file:
                 if tag in line:
                     results[rank] = float(line[line.find(tag) + len(tag):line.find("</" + tag[1:])])
+        this_file.close()
 
     return results
 
