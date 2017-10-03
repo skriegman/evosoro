@@ -40,7 +40,7 @@ The library is built on top of the open source [VoxCAD](https://github.com/jonhi
 (1) Citing
 ------
 
-If using this code for academic purposes please cite the following two papers.
+If using this code for academic purposes please consider citing the following two papers.
 
 Voxelyze physics engine and VoxCAD GUI:
 
@@ -54,21 +54,12 @@ Encoding and optimization (genetic algorithm):
 >*Unshackling evolution: evolving soft robots with multiple materials and a powerful generative encoding.* 
 >In Proceedings of the 15th annual conference on Genetic and evolutionary computation (pp. 167-174). ACM.
 
-When using specific versions of the physics engine (as indicated by VOXELYZE_VERSION in the Python examples), please check the accompanying ReadMe.txt (within the relevant "_voxcad_*" folder) for relevant additional references to be cited.
 
 
 (2) Installation
 ------------
 
-It is recommended that you install [Anaconda](https://docs.continuum.io/anaconda/install#) as your Python (2.7) distribution. Anaconda is a free package manager and Python distribution that includes all of the dependencies required for evosoro. However if you instead choose to manually install Python 2.7,
-
-    sudo apt-get install python-dev python-pip
-    sudo pip install scipy numpy networkx decorator  
-
-If you experience an error installing scipy it might be due to the incompatibility of different fortran compilers (see [scipy installation](https://docs.scipy.org/doc/numpy-1.10.1/user/install.html)). In most cases, you must build numpy/scipy with the same fortran compiler used to build blas/lapack/atlas. Try the following:
-
-	sudo apt-get install libatlas-base-dev gfortran
-	sudo pip install scipy numpy networkx decorator
+It is recommended that you install [Anaconda](https://docs.continuum.io/anaconda/install#) as your Python (2.7) distribution. Anaconda is a free package manager and Python distribution that includes all of the dependencies required for evosoro. However if you instead choose to manually install Python 2.7, the following packages are required: scipy, numpy, networkx, decorator.
 
 
 Install Qt and QMake if you have not already done so, specifically these packages: "libqt4-dev", "qt4-qmake", "libqwt-dev", "freeglut3-dev" and "zlib1g-dev".
@@ -118,26 +109,7 @@ Navigate back out to the examples folder and run basic.py
     python basic.py
 
 You should start seeing some output being produced in your console, and a new directory being created (evosoro/evosoro/basic_data), which contains the results of the simulation.
-    
-<!--
-------------------------------------
-**Installing from scratch on a virtual machine (graphics may not work properly)**
-- Install the latest version of VirtualBox
-- Download Ubuntu 14.04 x64 (ISO) and install it
-- Install VirtualBox Guest Additions (openGL support and other useful features)
-- Then run the virtual machine, and follow the instructions below
-..*a ready to use VirtualBox image is available
 
-Increasing the video memory could be useful: go in your VirtualBox installation folder and run:
-
-    vboxmanage modifyvm "VIRTUAL_MACHINE_NAME" --vram 256
-
-If you are having difficulty building scipy try
-
-    sudo apt-get install libatlas-base-dev gfortran
-
-------------------------------------
--->
 
 
 (3) Examples
@@ -161,6 +133,7 @@ The .vxa files for the best performing individuals will be saved in
     evosoro/evosoro/basic_data/bestSoFar/fitOnly.
 
 Once the design is loaded, you can start the physics simulation by clicking the <img src="https://github.com/skriegman/evosoro/blob/master/evosoro/_voxcad/VoxCad/Icons/Sandbox.png" height="25" width="25"> icon in the top bar ("Physics Sandbox").  The robot should start moving: if it doesn't, please check the following section (Known issues).
+
 
 (4) Known issues
 --------
