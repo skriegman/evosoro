@@ -105,7 +105,7 @@ Install the voxelyze library.
 
 Navigate back out to the examples folder and run basic.py
     
-    cd ../../examples
+    cd ../examples
     python basic.py
 
 You should start seeing some output being produced in your console, and a new directory being created (evosoro/evosoro/basic_data), which contains the results of the simulation.
