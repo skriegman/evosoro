@@ -137,6 +137,11 @@ Once the design is loaded, you can start the physics simulation by clicking the 
 
 (4) Known issues
 --------
+
+Some versions of VoxCad utilize the qhull library (http://www.qhull.org/). In these versions of the GUI, the 'qhull' executable must be present in your binary path.
+
+    sudo apt-get install qhull-bin
+
 If the robot does not move, disappears, or seems to behave in an unexpected manner when running a .vxa file in VoxCad (GUI), you may be affected by a known problem observed on some non-US machines.
 The problem is due to an unexpected behavior of the <a href="http://www.cplusplus.com/reference/cstdlib/atof/">atof</a> function when the system's numeric <a href="https://en.wikipedia.org/wiki/Locale_(computer_software)">locale</a> differs from en_US.UTF-8, which entails loading wrong parameters from the .vxa file (in some cases it was observed how the atof function was approximating all double and floating point values to their integer part, which was the cause of the unexpected behavior).
 
