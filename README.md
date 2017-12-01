@@ -79,7 +79,7 @@ Clone the repo.
 
     git clone https://github.com/skriegman/evosoro.git
 
-There are different well documented examples (evosoro/examples) and custom versions of VoxCad/Voxelyze included in this repository (evosoro/_voxcad folders, see the corresponding readme file).
+There are different well documented examples (evosoro/examples) and custom versions of VoxCad/Voxelyze included in this repository (evosoro/_voxcad_* folders).
 Let's try running an example in which soft robots are optimized to locomote in a terrestrial environment, using an evolutionary algorithm and a basic version (_voxcad) of the physics engine (the procedure is the same for all the examples). 
 
 Navigate to the _voxcad directory:
@@ -92,7 +92,6 @@ The following command compiles both VoxCad and Voxelyze, installing the library 
 
 If you happen to modify VoxCad or Voxelyze in the future, you can call the same script to be sure to clean and recompile everything. 
 
-<!--
     make
 
 Install the voxelyze library.
@@ -101,7 +100,7 @@ Install the voxelyze library.
     make
     make installusr
     cd ../voxelyzeMain/
-    make -->
+    make
 
 Navigate back out to the examples folder and run basic.py
     
@@ -115,7 +114,7 @@ You should start seeing some output being produced in your console, and a new di
 (3) Examples
 --------
 
-After running basic.py for some time, you can start having a look at some of the evolved morphologies and behaviors by opening up some of the generated .vxa files within the VoxCAD GUI. A .vxa file is just an XML file representing a robot that can be simulated by VoxCad/Voxelyze. Different custom versions of the physics engine can play slightly different .vxa files.
+After allowing basic.py to run for a few generations, you can view the evolved morphologies and behaviors by opening up the generated .vxa files within the VoxCAD GUI. A .vxa file is just an XML file representing a robot that can be simulated by VoxCad/Voxelyze. Different versions of the physics engine can play slightly different .vxa files.
 Navigate to evosoro/evosoro/_voxcad/release:
     
     cd ../_voxcad/release
