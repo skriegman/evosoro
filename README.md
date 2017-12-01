@@ -79,7 +79,7 @@ Clone the repo.
 
     git clone https://github.com/skriegman/evosoro.git
 
-There are different well documented examples (evosoro/examples) and custom versions of VoxCad/Voxelyze included in this repository (evosoro/_voxcad_* folders).
+There are different well documented examples (evosoro/examples) and custom versions of VoxCad/Voxelyze included in this repository (evosoro/_voxcad* folders).
 Let's try running an example in which soft robots are optimized to locomote in a terrestrial environment, using an evolutionary algorithm and a basic version (_voxcad) of the physics engine (the procedure is the same for all the examples). 
 
 Navigate to the _voxcad directory:
