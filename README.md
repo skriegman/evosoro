@@ -63,6 +63,8 @@ It is recommended that you install [Anaconda](https://docs.continuum.io/anaconda
 
 !WARNING: must use networkx<2.0 . When networkx updated 1.0-->2.0 some function changed and I haven't updated the pyhton code to reflect this change.
 
+    pip install networkx == 1.11
+
 
 Install Qt and QMake if you have not already done so, specifically these packages: "libqt4-dev", "qt4-qmake", "libqwt-dev", "freeglut3-dev" and "zlib1g-dev".
 
