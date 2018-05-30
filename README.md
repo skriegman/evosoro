@@ -61,9 +61,9 @@ Encoding and optimization (genetic algorithm):
 
 It is recommended that you install [Anaconda](https://docs.continuum.io/anaconda/install#) as your Python (2.7) distribution. Anaconda is a free package manager and Python distribution that includes all of the dependencies required for evosoro. However if you instead choose to manually install Python 2.7, the following packages are required: scipy, numpy, networkx, decorator.
 
-!WARNING: must use networkx<2.0 . When networkx updated 1.0-->2.0 some function changed and I haven't updated the pyhton code to reflect this change.
+Also networkx must be <2.0. When networkx updated 1.0-->2.0 some function changed and I haven't updated the python code to reflect this change.
 
-    pip install networkx == 1.11
+    pip install networkx==1.11
 
 
 Install Qt and QMake if you have not already done so, specifically these packages: "libqt4-dev", "qt4-qmake", "libqwt-dev", "freeglut3-dev" and "zlib1g-dev".
