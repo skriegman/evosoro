@@ -30,7 +30,7 @@ INCLUDE= -I./Voxelyze -I./Voxelyze/Utils
 CFLAGS= -O3 -Wall -std=c++11 $(INCLUDE)
 #CFLAGS= -g -Wall $(INCLUDE)
 
-CPPFLAGS= $(CFLAGS)
+CXXFLAGS= $(CFLAGS)
 
 Vox_src = \
 	VX_Benchmark.cpp \

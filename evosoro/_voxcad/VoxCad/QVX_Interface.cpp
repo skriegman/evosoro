@@ -30,7 +30,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #ifdef WIN32
 #define LOCALSLEEP Sleep
 #else
-#define LOCALSLEEP sleep
+#include <unistd.h>
+#define LOCALSLEEP(__X) usleep((__X)*1000)
 #endif
 
 #define DEFAULT_DISPLAY_UPDATE_MS 33 //normally updates the view at 30fps (33ms)

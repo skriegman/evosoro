@@ -7,6 +7,7 @@ TARGET = VoxCad
 DESTDIR = release
 QT += core gui xml opengl
 CONFIG += debug
+CONFIG += c++11
 DEFINES += QT_XML_LIB QT_OPENGL_LIB USE_ZLIB_COMPRESSION USE_OPEN_GL QT_DLL PREC_MED
 INCLUDEPATH += ../../../../Libs/qwt/src \
     . \
